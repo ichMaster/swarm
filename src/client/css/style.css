@@ -77,3 +77,13 @@ svg.sparkline { display: block; }
 .btn-restore { background: #16a34a; }
 .btn-new { background: #6b7280; }
 .obs-reaction { color: #bef264; }
+.cheatsheet-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+  display: flex; align-items: center; justify-content: center; z-index: 1000;
+}
+.cheatsheet {
+  background: #1f2937; border: 1px solid #374151; border-radius: 10px;
+  padding: 20px 28px; font-size: 13px; line-height: 2; color: #e5e7eb;
+}
+.cheatsheet-title { font-weight: 600; font-size: 15px; margin-bottom: 8px; color: #f3f4f6; }
+.cheatsheet-close { color: #6b7280; font-size: 11px; margin-top: 10px; }

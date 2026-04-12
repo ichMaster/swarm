@@ -96,6 +96,70 @@ document.getElementById("btn-claude").addEventListener("click", async () => {
   }
 });
 
+// ============ KEYBOARD SHORTCUTS ============
+function toggleCheatsheet() {
+  let overlay = document.getElementById("cheatsheet-overlay");
+  if (overlay) {
+    overlay.remove();
+    return;
+  }
+  overlay = document.createElement("div");
+  overlay.id = "cheatsheet-overlay";
+  overlay.className = "cheatsheet-overlay";
+  overlay.innerHTML = `
+    <div class="cheatsheet">
+      <div class="cheatsheet-title">Клавiшi</div>
+      <div>Space — пауза / продовження</div>
+      <div>R — скидання (з пiдтвердженням)</div>
+      <div>C — запитати Claude</div>
+      <div>E — export top 10</div>
+      <div>1..8 — швидкiсть симуляцiї</div>
+      <div>? — показати/сховати цю пiдказку</div>
+      <div class="cheatsheet-close">натисни будь-яку клавiшу або клiкни щоб закрити</div>
+    </div>
+  `;
+  overlay.addEventListener("click", () => overlay.remove());
+  document.body.appendChild(overlay);
+}
+
+window.addEventListener("keydown", (e) => {
+  if (e.target.tagName === "INPUT") return;
+
+  switch (e.key) {
+    case " ":
+      e.preventDefault();
+      document.getElementById("btn-toggle").click();
+      break;
+    case "r":
+    case "R":
+      if (confirm("Скинути симуляцiю?")) {
+        document.getElementById("btn-reset").click();
+      }
+      break;
+    case "c":
+    case "C":
+      document.getElementById("btn-claude").click();
+      break;
+    case "e":
+    case "E":
+      document.getElementById("btn-export").click();
+      break;
+    case "?":
+      toggleCheatsheet();
+      break;
+    default:
+      if (e.key >= "1" && e.key <= "8") {
+        params.simSpeed = +e.key;
+        document.getElementById("sim-speed").value = e.key;
+        document.getElementById("lbl-speed").textContent = e.key;
+      }
+      // Close cheatsheet on any other key
+      const cs = document.getElementById("cheatsheet-overlay");
+      if (cs) cs.remove();
+      break;
+  }
+});
+
 // ============ AUTO-SAVE ============
 startAutoSave(() => ({
   params, history, userLog: getUserLog(), observations: getObservations(),
