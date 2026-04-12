@@ -1,4 +1,4 @@
-import { step, createInitialState, createEmptyHistory, setRng } from "./simulation.js";
+import { step, createInitialState, createEmptyHistory, setRng, GENE_NAMES } from "./simulation.js";
 import { createRng } from "./prng.js";
 import { draw } from "./renderer.js";
 import { askClaude, isInFlight } from "./claude.js";
@@ -10,6 +10,7 @@ import {
 } from "./ui.js";
 import {
   loadState, startAutoSave, exportFullRun, showRestoreBanner,
+  exportCsv, exportCanvasImage,
 } from "./state.js";
 
 // ============ STATE ============
@@ -76,6 +77,14 @@ document.getElementById("btn-export").addEventListener("click", () => {
 
 document.getElementById("btn-export-run").addEventListener("click", () => {
   exportFullRun(params, history, getUserLog(), getObservations());
+});
+
+document.getElementById("btn-export-csv").addEventListener("click", () => {
+  exportCsv(history, GENE_NAMES);
+});
+
+document.getElementById("btn-export-img").addEventListener("click", () => {
+  exportCanvasImage(canvas);
 });
 
 document.getElementById("btn-claude").addEventListener("click", async () => {

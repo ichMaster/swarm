@@ -86,8 +86,40 @@ function showRestoreBanner(onRestore, onNew) {
   });
 }
 
+function exportCsv(history, geneNames) {
+  const headers = ["tick", "population", ...geneNames];
+  const rows = [headers.join(",")];
+  const len = history.population.length;
+  for (let i = 0; i < len; i++) {
+    const cols = [i, history.population[i]];
+    for (const g of geneNames) {
+      cols.push((history.genes[g][i] || 0).toFixed(4));
+    }
+    rows.push(cols.join(","));
+  }
+  const blob = new Blob([rows.join("\n")], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `swarm-data-${Date.now()}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportCanvasImage(canvas) {
+  canvas.toBlob((blob) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `swarm-snapshot-${Date.now()}.png`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, "image/png");
+}
+
 export {
   collectState, validateState,
   saveState, loadState, startAutoSave,
   exportFullRun, showRestoreBanner,
+  exportCsv, exportCanvasImage,
 };
