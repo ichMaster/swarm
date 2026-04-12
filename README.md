@@ -24,19 +24,20 @@ The simulation runs immediately. Panel 3 (Claude commentary) requires a valid AP
 src/
   server/
     index.js               Entry point — composes routes, starts HTTP server
-    claude-proxy.js         POST /claude — proxies to Anthropic API
+    env.js                 .env file parser (loads API key at startup)
+    claude-proxy.js        POST /claude — proxies to Anthropic API
     static.js              Static file serving from src/client/
+    state.js               POST /save, GET /state — persistence
   client/
     index.html             HTML shell, loads JS/CSS
     css/style.css          Extracted styles
     js/
-      main.js              Bootstrap, keyboard shortcuts
+      main.js              Bootstrap, wires modules together
       simulation.js        Boids engine, Reynolds rules, evolution
       renderer.js          Canvas 2D drawing
-      ui.js                Sliders, panels, sparklines, DOM
+      ui.js                Sliders, panels, sparklines, causal linking
       claude.js            Claude API client
-      state.js             Save/restore, export functions
-      prng.js              Deterministic PRNG (Mulberry32) for seed control
+      state.js             Auto-save/restore, full run export
 test/
   server/                  Server unit tests
   client/                  Client logic tests (pure functions, no DOM)
@@ -51,7 +52,7 @@ specification/
 ## Commands
 
 ```bash
-npm start                  # start server on port 8787
+npm start                  # start server on port 8787, auto-opens browser
 npm test                   # run all tests
 npm run test:server        # server unit tests only
 npm run test:client        # client logic tests only
@@ -60,9 +61,9 @@ npm run test:integration   # integration tests only
 
 ---
 
-## Simulation
+## Features
 
-### Mechanics
+### Simulation Mechanics
 
 - **Agents:** 60-120 boids, each with a 7-gene genome (`speed`, `perception`, `cohesion`, `alignment`, `separation`, `fleeStrength`, `size`)
 - **Movement:** Reynolds flocking rules + predator flee + food seek
@@ -73,7 +74,7 @@ npm run test:integration   # integration tests only
 ### Three Commentary Panels
 
 - **Panel 1 (yellow) — User actions.** Automatic log of parameter changes.
-- **Panel 2 (green) — Population dynamics.** Rule-based trend detector comparing 60-tick windows.
+- **Panel 2 (green) — Population dynamics.** Rule-based trend detector comparing 60-tick windows. Includes causal observation linking — after a slider change, the system checks for gene shifts 60 ticks later and reports the cause-effect relationship.
 - **Panel 3 (purple) — Claude commentary.** Calls Claude API with current simulation context for predictions and recommendations.
 
 ### Controls
@@ -84,6 +85,20 @@ npm run test:integration   # integration tests only
 | Food | 5-100 | Resource density |
 | Predators | 0-6 | Predator pressure |
 | Mutation rate | 0-50% | Evolution speed |
+
+### State Persistence
+
+- Auto-saves every 30 seconds and on page close
+- On reload, shows a restore banner if saved state is less than 24 hours old
+- "Експорт повного запуску" button downloads full run history as JSON
+
+### Server
+
+- Single-command startup (`npm start`) — serves both static files and API proxy
+- `.env` file auto-loaded at startup (no manual `export` needed)
+- Browser opens automatically on start
+- `POST /claude` proxies to Anthropic API
+- `POST /save` / `GET /state` for state persistence
 
 All UI text is in Ukrainian.
 
