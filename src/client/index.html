@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>Swarm Evolution · Iteration 1</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="layout">
+  <div class="canvas-col">
+    <div class="header">
+      <span>Swarm Evolution · Iteration 1</span>
+      <span class="header-sub">boids + evolution + commentary</span>
+    </div>
+    <canvas id="canvas" width="900" height="600"></canvas>
+    <div class="buttons">
+      <button id="btn-toggle" class="btn-pause">Pause</button>
+      <button id="btn-reset" class="btn-reset">Reset</button>
+      <button id="btn-export" class="btn-export">Export top 10</button>
+    </div>
+
+    <div class="commentary-row">
+      <div class="panel commentary-panel">
+        <div class="panel-title title-user">1 · Дiї користувача</div>
+        <div id="user-log" class="log"><span class="muted">змiни параметрiв з'являться тут</span></div>
+      </div>
+      <div class="panel commentary-panel">
+        <div class="panel-title title-dyn">2 · Динамiка популяцiї</div>
+        <div id="obs-log" class="log"><span class="muted">трендiв поки немає (треба ~120 тiкiв)</span></div>
+      </div>
+    </div>
+
+    <div class="panel claude-panel">
+      <div class="claude-header">
+        <span>3 · Коментар вiд Claude — прогноз i рекомендацiї</span>
+        <button id="btn-claude" class="btn-claude">Запитати Claude</button>
+      </div>
+      <div id="claude-body" class="claude-body">
+        <span class="empty">натисни "Запитати Claude" щоб отримати аналiз поточного стану, прогноз на найближчi 1-2 хвилини, i конкретну рекомендацiю що змiнити. Для роботи потрiбен локальний proxy-сервер (див. README).</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <div class="panel">
+      <div class="panel-title">Controls</div>
+      <div style="margin-bottom:10px">
+        <label class="label">Sim speed: <span id="lbl-speed">1</span>x</label>
+        <input type="range" id="sim-speed" min="1" max="8" value="1">
+      </div>
+      <div style="margin-bottom:10px">
+        <label class="label">Food: <span id="lbl-food">40</span></label>
+        <input type="range" id="food-count" min="5" max="100" value="40">
+      </div>
+      <div style="margin-bottom:10px">
+        <label class="label">Predators: <span id="lbl-predators">2</span></label>
+        <input type="range" id="predator-count" min="0" max="6" value="2">
+      </div>
+      <div>
+        <label class="label">Mutation rate: <span id="lbl-mutation">15</span>%</label>
+        <input type="range" id="mutation-rate" min="0" max="50" value="15">
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Population</div>
+      <div class="grid2">
+        <div><div class="label">Current</div><div class="value" id="m-pop">0</div></div>
+        <div><div class="label">Avg age</div><div class="value" id="m-age">0</div></div>
+        <div><div class="label">Births</div><div class="value" id="m-births">0</div></div>
+        <div><div class="label">Deaths</div><div class="value" id="m-deaths">0</div></div>
+        <div><div class="label">Eaten</div><div class="value" id="m-eaten">0</div></div>
+        <div><div class="label">Tick</div><div class="value" id="m-tick">0</div></div>
+      </div>
+      <div style="margin-top:10px">
+        <div class="label">Population over time</div>
+        <svg id="spark-pop" class="sparkline" width="140" height="24"></svg>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Gene averages</div>
+      <div id="genes-container"></div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
