@@ -1,5 +1,6 @@
 const http = require("http");
 const handleClaudeProxy = require("./claude-proxy");
+const handleStatic = require("./static");
 
 const PORT = process.env.PORT || 8787;
 
@@ -9,8 +10,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  res.writeHead(404, { "Content-Type": "text/plain" });
-  res.end("Not found");
+  handleStatic(req, res);
 });
 
 server.listen(PORT, () => {
