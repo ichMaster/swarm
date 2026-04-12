@@ -79,13 +79,14 @@ document.getElementById("btn-claude").addEventListener("click", async () => {
   const btn = document.getElementById("btn-claude");
   const body = document.getElementById("claude-body");
   btn.disabled = true;
-  btn.textContent = "Думає...";
-  body.className = "claude-body";
+  btn.innerHTML = '<span class="spinner"></span>Claude думає...';
+  body.className = "claude-body loading";
   body.textContent = "";
   try {
     const reply = await askClaude({
       params, metrics: lastMetrics, userLog: getUserLog(), observations: getObservations(),
     });
+    body.className = "claude-body fade-in";
     body.textContent = reply;
   } catch (e) {
     body.className = "claude-body error";
