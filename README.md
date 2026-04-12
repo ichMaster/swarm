@@ -28,16 +28,18 @@ src/
     claude-proxy.js        POST /claude — proxies to Anthropic API
     static.js              Static file serving from src/client/
     state.js               POST /save, GET /state — persistence
+    rate-limiter.js        Token-bucket rate limiter (per-IP)
   client/
     index.html             HTML shell, loads JS/CSS
     css/style.css          Extracted styles
     js/
-      main.js              Bootstrap, wires modules together
+      main.js              Bootstrap, keyboard shortcuts
       simulation.js        Boids engine, Reynolds rules, evolution
       renderer.js          Canvas 2D drawing
       ui.js                Sliders, panels, sparklines, causal linking
-      claude.js            Claude API client
+      claude.js            Claude API client, request deduplication
       state.js             Auto-save/restore, full run export
+      prng.js              Deterministic PRNG (Mulberry32) for seed control
 test/
   server/                  Server unit tests
   client/                  Client logic tests (pure functions, no DOM)
@@ -70,12 +72,13 @@ npm run test:integration   # integration tests only
 - **Evolution:** asynchronous — reproduction at energy > 70 with mutation, death at energy <= 0 or predator contact
 - **Energy drain:** `speed * 0.5 + size * 0.3`
 - **Environment:** 900x600 canvas with wraparound edges
+- **Seed control:** optional deterministic PRNG (Mulberry32) — set a seed to reproduce exact runs
 
 ### Three Commentary Panels
 
 - **Panel 1 (yellow) — User actions.** Automatic log of parameter changes.
 - **Panel 2 (green) — Population dynamics.** Rule-based trend detector comparing 60-tick windows. Includes causal observation linking — after a slider change, the system checks for gene shifts 60 ticks later and reports the cause-effect relationship.
-- **Panel 3 (purple) — Claude commentary.** Calls Claude API with current simulation context for predictions and recommendations.
+- **Panel 3 (purple) — Claude commentary.** Calls Claude API with current simulation context for predictions and recommendations. CSS spinner + animated ellipsis during loading, fade-in response.
 
 ### Controls
 
@@ -85,20 +88,35 @@ npm run test:integration   # integration tests only
 | Food | 5-100 | Resource density |
 | Predators | 0-6 | Predator pressure |
 | Mutation rate | 0-50% | Evolution speed |
+| Seed | text | Deterministic PRNG seed (empty = random) |
+
+### Keyboard Shortcuts
+
+| Key | Action |
+|-----|--------|
+| Space | Pause / resume |
+| R | Reset (with confirmation) |
+| C | Ask Claude |
+| E | Export top 10 genomes |
+| 1-8 | Set simulation speed |
+| ? | Toggle shortcut cheatsheet |
+
+Shortcuts are ignored when an input field has focus.
 
 ### State Persistence
 
 - Auto-saves every 30 seconds and on page close
 - On reload, shows a restore banner if saved state is less than 24 hours old
-- "Експорт повного запуску" button downloads full run history as JSON
+- "Експорт повного запуску" button downloads full run history as JSON (includes seed)
 
 ### Server
 
 - Single-command startup (`npm start`) — serves both static files and API proxy
 - `.env` file auto-loaded at startup (no manual `export` needed)
 - Browser opens automatically on start
-- `POST /claude` proxies to Anthropic API
+- `POST /claude` proxies to Anthropic API (rate-limited to 10 req/min per IP)
 - `POST /save` / `GET /state` for state persistence
+- Request deduplication — duplicate Claude calls are ignored while one is in-flight
 
 All UI text is in Ukrainian.
 
@@ -110,6 +128,7 @@ All UI text is in Ukrainian.
 2. **Predator pressure.** Predators = 6, food = 40. Expect cohesion and fleeStrength to rise.
 3. **Abundance.** Predators = 0, food = 100. Cohesion drops, agents become solitary.
 4. **Mutation stress test.** Mutation rate = 50%, food = 20, predators = 3. Population either adapts or goes extinct.
+5. **Reproducibility.** Set seed to `42`, run for 2 minutes, reset with same seed — observe identical evolution.
 
 ---
 
