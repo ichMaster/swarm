@@ -183,6 +183,42 @@ startAutoSave(() => ({
   params, history, userLog: getUserLog(), observations: getObservations(),
 }));
 
+// ============ ONBOARDING ============
+function showOnboarding() {
+  if (localStorage.getItem("onboarding-dismissed")) return;
+  const overlay = document.createElement("div");
+  overlay.className = "onboarding-overlay";
+  overlay.innerHTML = `
+    <div class="onboarding">
+      <div class="onboarding-title">Ласкаво просимо до Swarm Evolution</div>
+      <div class="onboarding-section">
+        Це симулятор роїв з еволюцiйним вiдбором. Нижче канвасу розташованi три панелi коментарiв:
+      </div>
+      <div class="onboarding-section">
+        <span class="onboarding-label user">1 -- Дiї користувача</span> -- тут з'являються вашi змiни параметрiв (їжа, хижаки, мутацiя).
+      </div>
+      <div class="onboarding-section">
+        <span class="onboarding-label dyn">2 -- Динамiка популяцiї</span> -- автоматичнi спостереження за трендами генiв та популяцiї.
+      </div>
+      <div class="onboarding-section">
+        <span class="onboarding-label claude">3 -- Коментар вiд Claude</span> -- натиснiть "Запитати Claude" щоб отримати AI-аналiз, прогноз i рекомендацiю.
+      </div>
+      <div class="onboarding-close">
+        <button id="btn-onboarding-close">Зрозумiло</button>
+      </div>
+    </div>
+  `;
+  function dismiss() {
+    localStorage.setItem("onboarding-dismissed", "1");
+    overlay.remove();
+  }
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) dismiss();
+  });
+  document.body.appendChild(overlay);
+  document.getElementById("btn-onboarding-close").addEventListener("click", dismiss);
+}
+
 // ============ RESTORE OR START ============
 async function boot() {
   const saved = await loadState();
@@ -214,6 +250,7 @@ async function boot() {
     );
   } else {
     initState();
+    showOnboarding();
   }
   renderUserLog();
   renderObservations();
