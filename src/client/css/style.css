@@ -92,6 +92,12 @@ svg.sparkline { display: block; }
 .btn-restore { background: #16a34a; }
 .btn-new { background: #6b7280; }
 .obs-reaction { color: #bef264; }
+.seed-input {
+  background: #1f2937; color: #e5e7eb; border: 1px solid #374151;
+  border-radius: 6px; padding: 7px 10px; font-size: 12px; width: 80px;
+  font-family: monospace;
+}
+.seed-input::placeholder { color: #6b7280; }
 .cheatsheet-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,0.7);
   display: flex; align-items: center; justify-content: center; z-index: 1000;

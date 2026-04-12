@@ -1,8 +1,10 @@
 const MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 function collectState(params, history, userLog, observations) {
+  const seedEl = typeof document !== "undefined" ? document.getElementById("seed-input") : null;
   return {
     savedAt: Date.now(),
+    seed: seedEl ? seedEl.value.trim() : "",
     params: { ...params },
     history: {
       population: [...history.population],

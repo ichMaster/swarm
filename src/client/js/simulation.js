@@ -25,8 +25,11 @@ const GENE_COLORS = {
 };
 
 // ============ HELPERS ============
+let _rng = Math.random;
+const setRng = (fn) => { _rng = fn; };
+const getRng = () => _rng;
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-const rnd = (lo, hi) => lo + Math.random() * (hi - lo);
+const rnd = (lo, hi) => lo + _rng() * (hi - lo);
 const dist2 = (a, b) => { const dx = a.x - b.x, dy = a.y - b.y; return dx * dx + dy * dy; };
 const wrap = (v, max) => ((v % max) + max) % max;
 
@@ -40,7 +43,7 @@ const mutateGenome = (g, rate) => {
   const out = {};
   for (const k of GENE_NAMES) {
     const [lo, hi] = GENE_RANGES[k];
-    out[k] = Math.random() < rate
+    out[k] = _rng() < rate
       ? clamp(g[k] + rnd(-MUTATION_AMOUNT, MUTATION_AMOUNT), lo, hi)
       : g[k];
   }
@@ -245,7 +248,7 @@ export {
   ENERGY_START, ENERGY_DRAIN, FOOD_ENERGY, REPRODUCE_THRESHOLD,
   MUTATION_AMOUNT, HISTORY_LEN, TREND_WINDOW,
   GENE_RANGES, GENE_NAMES, GENE_UA, GENE_COLORS,
-  clamp, rnd, dist2, wrap,
+  clamp, rnd, dist2, wrap, setRng, getRng,
   randomGenome, mutateGenome, genomeColor,
   makeBoid, makeFood, makePredator,
   step, detectTrends, createInitialState, createEmptyHistory,

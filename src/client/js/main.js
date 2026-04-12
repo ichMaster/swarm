@@ -1,4 +1,5 @@
-import { step, createInitialState, createEmptyHistory } from "./simulation.js";
+import { step, createInitialState, createEmptyHistory, setRng } from "./simulation.js";
+import { createRng } from "./prng.js";
 import { draw } from "./renderer.js";
 import { askClaude, isInFlight } from "./claude.js";
 import {
@@ -23,6 +24,8 @@ const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
 function initState() {
+  const seedVal = document.getElementById("seed-input").value.trim();
+  setRng(createRng(seedVal || null));
   state = createInitialState(params);
   history = createEmptyHistory();
   resetObservations();
