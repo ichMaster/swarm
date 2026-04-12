@@ -45,10 +45,11 @@ function loop() {
 }
 
 // ============ UI BINDINGS ============
-bindSlider("sim-speed", "lbl-speed", "simSpeed", params, v => v, null, getTick);
-bindSlider("food-count", "lbl-food", "foodCount", params, v => v, null, getTick);
-bindSlider("predator-count", "lbl-predators", "predatorCount", params, v => v, null, getTick);
-bindSlider("mutation-rate", "lbl-mutation", "mutationRate", params, v => v / 100, null, getTick);
+const getGeneAvg = () => lastMetrics.geneAvg || null;
+bindSlider("sim-speed", "lbl-speed", "simSpeed", params, v => v, null, getTick, getGeneAvg);
+bindSlider("food-count", "lbl-food", "foodCount", params, v => v, null, getTick, getGeneAvg);
+bindSlider("predator-count", "lbl-predators", "predatorCount", params, v => v, null, getTick, getGeneAvg);
+bindSlider("mutation-rate", "lbl-mutation", "mutationRate", params, v => v / 100, null, getTick, getGeneAvg);
 
 document.getElementById("btn-toggle").addEventListener("click", (e) => {
   running = !running;

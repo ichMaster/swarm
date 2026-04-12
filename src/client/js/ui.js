@@ -6,13 +6,27 @@ import { renderSparkline } from "./renderer.js";
 
 let observations = [];
 let userLog = [];
+let pendingActions = [];
+
+const CAUSAL_DELAY = 60;
+const CAUSAL_THRESHOLD = 0.05;
+
+const SLIDER_UA = {
+  foodCount: "їжi",
+  predatorCount: "хижакiв",
+  mutationRate: "мутацiї",
+  simSpeed: "швидкостi",
+};
 
 function renderObservations() {
   const el = document.getElementById("obs-log");
   if (observations.length === 0) {
     el.innerHTML = `<span class="muted">трендiв поки немає (треба ~${TREND_WINDOW * 2} тiкiв)</span>`;
   } else {
-    el.innerHTML = observations.map(o => `<div>• ${o}</div>`).join("");
+    el.innerHTML = observations.map(o => {
+      const cls = o.startsWith("[реакцiя]") ? ' class="obs-reaction"' : "";
+      return `<div${cls}>• ${o}</div>`;
+    }).join("");
   }
 }
 
@@ -73,6 +87,34 @@ function renderMetrics(state, history) {
 
   if (state.stats.tick % 30 === 0) {
     observations = detectTrends(history);
+    // Check causal links from pending slider actions
+    const tick = state.stats.tick;
+    const remaining = [];
+    for (const action of pendingActions) {
+      if (tick - action.tick >= CAUSAL_DELAY) {
+        let maxGene = null, maxDelta = 0;
+        for (const g of GENE_NAMES) {
+          const delta = geneAvg[g] - (action.geneSnapshot[g] || 0);
+          if (Math.abs(delta) > CAUSAL_THRESHOLD && Math.abs(delta) > Math.abs(maxDelta)) {
+            maxGene = g; maxDelta = delta;
+          }
+        }
+        if (maxGene) {
+          const sliderName = SLIDER_UA[action.key] || action.key;
+          const arrow = maxDelta > 0 ? "\u2191" : "\u2193";
+          const formatted = typeof action.newVal === "number" && action.newVal < 1
+            ? `${(action.newVal * 100).toFixed(0)}%`
+            : action.newVal;
+          observations.push(
+            `[реакцiя] Пiсля змiни ${sliderName} до ${formatted}, ` +
+            `${GENE_UA[maxGene]} ${arrow} на ${Math.abs(maxDelta).toFixed(2)} за ${CAUSAL_DELAY} тiкiв`
+          );
+        }
+      } else {
+        remaining.push(action);
+      }
+    }
+    pendingActions = remaining;
     renderObservations();
   }
 
@@ -87,7 +129,7 @@ function labelFor(key, oldVal, newVal) {
   return `${key}: ${oldVal} \u2192 ${newVal}`;
 }
 
-function bindSlider(id, lblId, key, params, transform, formatLbl, getTick) {
+function bindSlider(id, lblId, key, params, transform, formatLbl, getTick, getGeneAvg) {
   const input = document.getElementById(id);
   const lbl = document.getElementById(lblId);
   input.addEventListener("input", () => {
@@ -96,7 +138,14 @@ function bindSlider(id, lblId, key, params, transform, formatLbl, getTick) {
     params[key] = newVal;
     lbl.textContent = formatLbl ? formatLbl(+input.value) : input.value;
     if (oldVal !== newVal) {
-      logUserChange(labelFor(key, oldVal, newVal), getTick());
+      const tick = getTick();
+      logUserChange(labelFor(key, oldVal, newVal), tick);
+      if (key !== "simSpeed" && getGeneAvg) {
+        const snapshot = getGeneAvg();
+        if (snapshot) {
+          pendingActions.push({ key, newVal, tick, geneSnapshot: { ...snapshot } });
+        }
+      }
     }
   });
 }
