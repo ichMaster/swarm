@@ -17,7 +17,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  if (req.url === "/save" || req.url === "/state") {
+  if (req.url.startsWith("/save") || req.url.startsWith("/state")) {
     handleState(req, res);
     return;
   }
@@ -35,9 +35,10 @@ function openBrowser(url) {
 }
 
 server.listen(PORT, () => {
-  const url = `http://localhost:${PORT}`;
+  const actualPort = server.address().port;
+  const url = `http://localhost:${actualPort}`;
   console.log(`Server running at ${url}`);
-  openBrowser(url);
+  if (String(PORT) !== "0") openBrowser(url);
 });
 
 module.exports = server;
