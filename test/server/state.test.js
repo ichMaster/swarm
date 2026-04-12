@@ -51,14 +51,14 @@ describe("state persistence", () => {
       origEnd(data);
       assert.equal(res.statusCode, 200);
       const written = JSON.parse(fs.readFileSync(STATE_PATH, "utf8"));
-      assert.equal(written.test, "data");
+      assert.equal(written.default.test, "data");
       done();
     };
     handleState(req, res);
   });
 
   it("GET /state reads state from disk", (_, done) => {
-    fs.writeFileSync(STATE_PATH, JSON.stringify({ hello: "world" }));
+    fs.writeFileSync(STATE_PATH, JSON.stringify({ default: { hello: "world" } }));
     const req = mockReq("GET", "/state");
     const res = mockRes();
     const origEnd = res.end;

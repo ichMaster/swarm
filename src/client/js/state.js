@@ -1,5 +1,13 @@
 const MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
+function getTabId() {
+  if (typeof sessionStorage === "undefined") return "default";
+  if (!sessionStorage.tabId) {
+    sessionStorage.tabId = "tab-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8);
+  }
+  return sessionStorage.tabId;
+}
+
 function collectState(params, history, userLog, observations) {
   const seedEl = typeof document !== "undefined" ? document.getElementById("seed-input") : null;
   return {
@@ -26,8 +34,9 @@ function validateState(s) {
 
 async function saveState(params, history, userLog, observations) {
   const payload = collectState(params, history, userLog, observations);
+  const tab = getTabId();
   try {
-    await fetch("/save", {
+    await fetch(`/save?tab=${encodeURIComponent(tab)}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -36,8 +45,9 @@ async function saveState(params, history, userLog, observations) {
 }
 
 async function loadState() {
+  const tab = getTabId();
   try {
-    const res = await fetch("/state");
+    const res = await fetch(`/state?tab=${encodeURIComponent(tab)}`);
     if (!res.ok) return null;
     const data = await res.json();
     if (!validateState(data)) return null;
@@ -118,6 +128,7 @@ function exportCanvasImage(canvas) {
 }
 
 export {
+  getTabId,
   collectState, validateState,
   saveState, loadState, startAutoSave,
   exportFullRun, showRestoreBanner,

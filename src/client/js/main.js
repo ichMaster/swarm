@@ -87,6 +87,10 @@ document.getElementById("btn-export-img").addEventListener("click", () => {
   exportCanvasImage(canvas);
 });
 
+document.getElementById("btn-new-window").addEventListener("click", () => {
+  window.open(window.location.href, "_blank");
+});
+
 document.getElementById("btn-claude").addEventListener("click", async () => {
   if (isInFlight()) return;
   const btn = document.getElementById("btn-claude");
