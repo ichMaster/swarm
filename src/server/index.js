@@ -1,6 +1,9 @@
 const http = require("http");
+const loadEnv = require("./env");
 const handleClaudeProxy = require("./claude-proxy");
 const handleStatic = require("./static");
+
+loadEnv();
 
 const PORT = process.env.PORT || 8787;
 
