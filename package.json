@@ -5,9 +5,9 @@
   "private": true,
   "scripts": {
     "start": "node src/server/index.js",
-    "test": "node --test test/**/*.test.js",
+    "test": "node --test test/**/*.test.js test/**/*.test.mjs",
     "test:server": "node --test test/server/*.test.js",
-    "test:client": "node --test test/client/*.test.js",
+    "test:client": "node --test test/client/*.test.mjs",
     "test:integration": "node --test test/integration/*.test.js"
   },
   "engines": {
