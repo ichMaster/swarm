@@ -1,6 +1,6 @@
 import { step, createInitialState, createEmptyHistory } from "./simulation.js";
 import { draw } from "./renderer.js";
-import { askClaude } from "./claude.js";
+import { askClaude, isInFlight } from "./claude.js";
 import {
   renderMetrics, renderObservations, renderUserLog,
   bindSlider, getObservations, getUserLog,
@@ -76,6 +76,7 @@ document.getElementById("btn-export-run").addEventListener("click", () => {
 });
 
 document.getElementById("btn-claude").addEventListener("click", async () => {
+  if (isInFlight()) return;
   const btn = document.getElementById("btn-claude");
   const body = document.getElementById("claude-body");
   btn.disabled = true;

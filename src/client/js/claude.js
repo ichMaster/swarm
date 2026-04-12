@@ -1,6 +1,19 @@
 import { GENE_NAMES, GENE_UA } from "./simulation.js";
 
+let inflight = false;
+let abortController = null;
+
+window.addEventListener("beforeunload", () => {
+  if (abortController) abortController.abort();
+});
+
+function isInFlight() { return inflight; }
+
 async function askClaude(context) {
+  if (inflight) return null;
+  inflight = true;
+  abortController = new AbortController();
+
   const prompt = `Ти -- експерт з роєвого iнтелекту i еволюцiйних алгоритмiв. Аналiзуєш симуляцiю boids з генетичним вiдбором. Вiдповiдай коротко i конкретно українською (3-5 речень максимум).
 
 Поточнi параметри:
@@ -29,14 +42,20 @@ ${context.observations.map(o => `- ${o}`).join("\n") || "стабiльнiсть"
 
 ВАЖЛИВО: роздiляй кожен пункт ПОРОЖНIМ РЯДКОМ (подвiйний перенос). Без заголовкiв i маркерiв, просто три короткi абзаци через порожнiй рядок.`;
 
-  const response = await fetch("/claude", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt }),
-  });
-  if (!response.ok) throw new Error(`proxy ${response.status}: ${await response.text()}`);
-  const data = await response.json();
-  return data.text || "(порожня вiдповiдь)";
+  try {
+    const response = await fetch("/claude", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt }),
+      signal: abortController.signal,
+    });
+    if (!response.ok) throw new Error(`proxy ${response.status}: ${await response.text()}`);
+    const data = await response.json();
+    return data.text || "(порожня вiдповiдь)";
+  } finally {
+    inflight = false;
+    abortController = null;
+  }
 }
 
-export { askClaude };
+export { askClaude, isInFlight };
