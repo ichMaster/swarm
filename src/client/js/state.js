@@ -1,0 +1,91 @@
+const MAX_AGE_MS = 24 * 60 * 60 * 1000;
+
+function collectState(params, history, userLog, observations) {
+  return {
+    savedAt: Date.now(),
+    params: { ...params },
+    history: {
+      population: [...history.population],
+      genes: Object.fromEntries(
+        Object.entries(history.genes).map(([k, v]) => [k, [...v]])
+      ),
+    },
+    userLog: [...userLog],
+    observations: [...observations],
+  };
+}
+
+function validateState(s) {
+  return s && typeof s === "object"
+    && typeof s.savedAt === "number"
+    && s.params && typeof s.params === "object"
+    && s.history && Array.isArray(s.history.population);
+}
+
+async function saveState(params, history, userLog, observations) {
+  const payload = collectState(params, history, userLog, observations);
+  try {
+    await fetch("/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  } catch { /* ignore save errors */ }
+}
+
+async function loadState() {
+  try {
+    const res = await fetch("/state");
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!validateState(data)) return null;
+    if (Date.now() - data.savedAt > MAX_AGE_MS) return null;
+    return data;
+  } catch { return null; }
+}
+
+function startAutoSave(getArgs) {
+  const save = () => {
+    const { params, history, userLog, observations } = getArgs();
+    saveState(params, history, userLog, observations);
+  };
+  const intervalId = setInterval(save, 30000);
+  window.addEventListener("beforeunload", save);
+  return intervalId;
+}
+
+function exportFullRun(params, history, userLog, observations) {
+  const payload = collectState(params, history, userLog, observations);
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `swarm-run-${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function showRestoreBanner(onRestore, onNew) {
+  const banner = document.createElement("div");
+  banner.className = "restore-banner";
+  banner.innerHTML = `
+    <span>Знайдено збережений стан. </span>
+    <button id="btn-restore" class="btn-restore">Вiдновити</button>
+    <button id="btn-new" class="btn-new">Почати нову</button>
+  `;
+  document.body.prepend(banner);
+  document.getElementById("btn-restore").addEventListener("click", () => {
+    banner.remove();
+    onRestore();
+  });
+  document.getElementById("btn-new").addEventListener("click", () => {
+    banner.remove();
+    onNew();
+  });
+}
+
+export {
+  collectState, validateState,
+  saveState, loadState, startAutoSave,
+  exportFullRun, showRestoreBanner,
+};

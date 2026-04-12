@@ -68,3 +68,11 @@ input[type=range] { width: 100%; }
 }
 .gene-header .val { font-family: monospace; color: #d1d5db; }
 svg.sparkline { display: block; }
+.btn-export-run { background: #0d9488; }
+.restore-banner {
+  background: #1e3a5f; color: #93c5fd; padding: 10px 16px;
+  border-radius: 8px; margin-bottom: 10px; font-size: 13px;
+  display: flex; align-items: center; gap: 10px;
+}
+.btn-restore { background: #16a34a; }
+.btn-new { background: #6b7280; }

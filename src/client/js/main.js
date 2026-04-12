@@ -5,7 +5,11 @@ import {
   renderMetrics, renderObservations, renderUserLog,
   bindSlider, getObservations, getUserLog,
   resetUserLog, resetObservations,
+  setObservations, setUserLog,
 } from "./ui.js";
+import {
+  loadState, startAutoSave, exportFullRun, showRestoreBanner,
+} from "./state.js";
 
 // ============ STATE ============
 let state = null;
@@ -66,6 +70,10 @@ document.getElementById("btn-export").addEventListener("click", () => {
   alert("Top 10 genomes exported to browser console (F12).");
 });
 
+document.getElementById("btn-export-run").addEventListener("click", () => {
+  exportFullRun(params, history, getUserLog(), getObservations());
+});
+
 document.getElementById("btn-claude").addEventListener("click", async () => {
   const btn = document.getElementById("btn-claude");
   const body = document.getElementById("claude-body");
@@ -87,8 +95,46 @@ document.getElementById("btn-claude").addEventListener("click", async () => {
   }
 });
 
-// ============ START ============
-initState();
-renderUserLog();
-renderObservations();
-loop();
+// ============ AUTO-SAVE ============
+startAutoSave(() => ({
+  params, history, userLog: getUserLog(), observations: getObservations(),
+}));
+
+// ============ RESTORE OR START ============
+async function boot() {
+  const saved = await loadState();
+  if (saved) {
+    showRestoreBanner(
+      () => {
+        // Restore
+        Object.assign(params, saved.params);
+        history = saved.history;
+        if (saved.userLog) setUserLog(saved.userLog);
+        if (saved.observations) setObservations(saved.observations);
+        // Sync slider UI to restored params
+        document.getElementById("sim-speed").value = params.simSpeed;
+        document.getElementById("lbl-speed").textContent = params.simSpeed;
+        document.getElementById("food-count").value = params.foodCount;
+        document.getElementById("lbl-food").textContent = params.foodCount;
+        document.getElementById("predator-count").value = params.predatorCount;
+        document.getElementById("lbl-predators").textContent = params.predatorCount;
+        document.getElementById("mutation-rate").value = Math.round(params.mutationRate * 100);
+        document.getElementById("lbl-mutation").textContent = Math.round(params.mutationRate * 100);
+        state = createInitialState(params);
+        renderUserLog();
+        renderObservations();
+      },
+      () => {
+        // Start new
+        initState();
+      }
+    );
+  } else {
+    initState();
+  }
+  renderUserLog();
+  renderObservations();
+  loop();
+}
+
+boot();

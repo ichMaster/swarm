@@ -103,11 +103,14 @@ function bindSlider(id, lblId, key, params, transform, formatLbl, getTick) {
 
 function getObservations() { return observations; }
 function getUserLog() { return userLog; }
+function setUserLog(log) { userLog = log; renderUserLog(); }
+function setObservations(obs) { observations = obs; renderObservations(); }
 function resetUserLog() { userLog = []; renderUserLog(); }
 function resetObservations() { observations = []; renderObservations(); }
 
 export {
   renderMetrics, renderObservations, renderUserLog,
   logUserChange, bindSlider,
-  getObservations, getUserLog, resetUserLog, resetObservations,
+  getObservations, getUserLog, setUserLog, setObservations,
+  resetUserLog, resetObservations,
 };
