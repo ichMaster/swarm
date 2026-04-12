@@ -1,0 +1,16 @@
+{
+  "name": "swarm-evolution-v1",
+  "version": "0.1.0",
+  "description": "Boids + evolutionary selection simulator with AI commentary. Iteration 1 of Swarm Intelligence Simulator roadmap.",
+  "private": true,
+  "scripts": {
+    "start": "node proxy.js",
+    "proxy": "node proxy.js",
+    "serve": "python3 -m http.server 8000",
+    "dev": "echo 'Run `npm run proxy` in one terminal and `npm run serve` in another, then open http://localhost:8000'"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {}
+}
