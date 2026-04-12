@@ -89,3 +89,16 @@ Client tests cover pure logic only (simulation math, PRNG determinism, state ser
 - Node.js 18+
 - Modern browsers only (Chrome 100+, Firefox 100+, Safari 15+)
 - Cross-platform (macOS, Linux, Windows)
+
+## Permissions
+
+Claude Code has full permissions to execute the following without prompting:
+
+- **File operations**: Read, Edit, Write, Glob, Grep — all files in the project
+- **Git**: all git commands (commit, add, rm, status, log, diff, branch, checkout, etc.)
+- **Node.js**: `node`, `npm`, `npx` — run scripts, tests, start server
+- **Shell**: `mkdir`, `rm`, `mv`, `cp`, `ls`, `cat`, `touch`, `echo`, `chmod`, `head`, `tail`, `wc`, `diff`, `curl`, `test`, `timeout`, `pwd`, `which`
+- **GitHub CLI**: `gh` — issues, PRs, repo operations
+- **GitHub MCP**: create/update/list issues, create/merge PRs, push files, search code
+
+When implementing issues, Claude Code should commit after each issue, run tests, and fix any failures without asking for permission.
