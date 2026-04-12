@@ -1,152 +1,158 @@
 # Swarm Evolution v1
 
-Browser-based boids simulator with evolutionary selection and AI (Claude) commentary. Iteration 1 of a 5-iteration roadmap toward sim2real swarm intelligence on physical UGV robots. Zero runtime dependencies, zero build step.
+Браузерний симулятор ройового iнтелекту з еволюцiйним вiдбором та AI-коментарями (Claude). Iтерацiя 1 з 5 на шляху до sim2real на фiзичних UGV-роботах. Нуль залежностей, нуль етапiв збирання.
 
 ---
 
-## Quick Start
+## Швидкий старт
 
 ```bash
-cp .env.example .env       # one-time setup
-# add your ANTHROPIC_API_KEY to .env
-npm start                  # starts server on port 8787, opens browser
+cp .env.example .env       # одноразове налаштування
+# додайте ANTHROPIC_API_KEY у .env
+npm start                  # запускає сервер на портi 8787, вiдкриває браузер
 ```
 
-Get an API key at https://console.anthropic.com/settings/keys
+Отримати API-ключ: https://console.anthropic.com/settings/keys
 
-The simulation runs immediately. Panel 3 (Claude commentary) requires a valid API key; panels 1 and 2 work without one.
+Симуляцiя запускається одразу. Панель 3 (коментар Claude) потребує дiйсний API-ключ; панелi 1 та 2 працюють без нього.
 
 ---
 
-## Project Structure
+## Структура проєкту
 
 ```
-src/
-  server/
-    index.js               Entry point — composes routes, starts HTTP server
-    env.js                 .env file parser (loads API key at startup)
-    claude-proxy.js        POST /claude — proxies to Anthropic API
-    static.js              Static file serving from src/client/
-    state.js               POST /save, GET /state — persistence
-    rate-limiter.js        Token-bucket rate limiter (per-IP)
-  client/
-    index.html             HTML shell, loads JS/CSS
-    css/style.css          Extracted styles
+src/server/
+    index.js               Точка входу -- маршрутизацiя, HTTP-сервер
+    env.js                 Парсер .env (завантажує API-ключ при стартi)
+    claude-proxy.js        POST /claude -- проксi до Anthropic API
+    static.js              Роздача статичних файлiв з src/client/
+    state.js               POST /save, GET /state -- збереження стану
+    rate-limiter.js        Обмеження запитiв (token-bucket, per-IP)
+src/client/
+    index.html             HTML-оболонка, завантажує JS/CSS
+    css/style.css          Стилi
     js/
-      main.js              Bootstrap, keyboard shortcuts
-      simulation.js        Boids engine, Reynolds rules, evolution
-      renderer.js          Canvas 2D drawing
-      ui.js                Sliders, panels, sparklines, causal linking
-      claude.js            Claude API client, request deduplication
-      state.js             Auto-save/restore, full run export
-      prng.js              Deterministic PRNG (Mulberry32) for seed control
-test/
-  server/                  Server unit tests
-  client/                  Client logic tests (pure functions, no DOM)
-  integration/             Full server integration tests
+      main.js              Iнiцiалiзацiя, клавiатурнi скорочення
+      simulation.js        Двигун boids, правила Рейнольдса, еволюцiя
+      renderer.js          Малювання на Canvas 2D
+      ui.js                Слайдери, панелi, спарклайни, каузальнi зв'язки
+      claude.js            Claude API клiєнт, дедуплiкацiя запитiв
+      state.js             Автозбереження/вiдновлення, експорт
+      prng.js              Детермiнований ГПВЧ (Mulberry32)
+test/server/               Серверне модульне тестування
+test/client/               Клiєнтське тестування (чистi функцiї, без DOM)
+test/integration/          Iнтеграцiйнi тести
 specification/
-  SPECIFICATION.md         Full engineering spec
-  ISSUES.md                Phased issue breakdown
+  SPECIFICATION.md         Повна iнженерна специфiкацiя
+  ISSUES.md                Розбивка завдань по фазах
 ```
 
 ---
 
-## Commands
+## Команди
 
 ```bash
-npm start                  # start server on port 8787, auto-opens browser
-npm test                   # run all tests
-npm run test:server        # server unit tests only
-npm run test:client        # client logic tests only
-npm run test:integration   # integration tests only
+npm start                  # запуск сервера на портi 8787, авто-вiдкриття браузера
+npm test                   # запуск усiх тестiв
+npm run test:server        # лише серверне тестування
+npm run test:client        # лише клiєнтське тестування
+npm run test:integration   # лише iнтеграцiйнi тести
 ```
 
 ---
 
-## Features
+## Можливостi
 
-### Simulation Mechanics
+### Механiка симуляцiї
 
-- **Agents:** 60-120 boids, each with a 7-gene genome (`speed`, `perception`, `cohesion`, `alignment`, `separation`, `fleeStrength`, `size`)
-- **Movement:** Reynolds flocking rules + predator flee + food seek
-- **Evolution:** asynchronous — reproduction at energy > 70 with mutation, death at energy <= 0 or predator contact
-- **Energy drain:** `speed * 0.5 + size * 0.3`
-- **Environment:** 900x600 canvas with wraparound edges
-- **Seed control:** optional deterministic PRNG (Mulberry32) — set a seed to reproduce exact runs
+- **Агенти:** 60-120 боїдiв, кожен з 7-генним геномом (`speed`, `perception`, `cohesion`, `alignment`, `separation`, `fleeStrength`, `size`)
+- **Рух:** правила флокiнгу Рейнольдса + втеча вiд хижакiв + пошук їжi
+- **Еволюцiя:** асинхронна -- розмноження при енергiї > 70 з мутацiєю, смерть при енергiї <= 0 або контактi з хижаком
+- **Витрата енергiї:** `speed * 0.5 + size * 0.3`
+- **Середовище:** канвас 900x600 з обгортанням країв
+- **Контроль сiду:** опцiональний детермiнований ГПВЧ (Mulberry32) -- задайте сiд для вiдтворення точних запускiв
+- **Просторова оптимiзацiя:** рiвномiрна сiтка (110px комiрки) для O(n) пошуку сусiдiв
 
-### Three Commentary Panels
+### Три панелi коментарiв
 
-- **Panel 1 (yellow) — User actions.** Automatic log of parameter changes.
-- **Panel 2 (green) — Population dynamics.** Rule-based trend detector comparing 60-tick windows. Includes causal observation linking — after a slider change, the system checks for gene shifts 60 ticks later and reports the cause-effect relationship.
-- **Panel 3 (purple) — Claude commentary.** Calls Claude API with current simulation context for predictions and recommendations. CSS spinner + animated ellipsis during loading, fade-in response.
+- **Панель 1 (жовта) -- Дiї користувача.** Автоматичний журнал змiн параметрiв.
+- **Панель 2 (зелена) -- Динамiка популяцiї.** Детектор трендiв, що порiвнює 60-тiкованi вiкна. Включає каузальне зв'язування -- пiсля змiни слайдера система перевiряє змiни генiв через 60 тiкiв i повiдомляє про причинно-наслiдковий зв'язок.
+- **Панель 3 (фiолетова) -- Коментар Claude.** Викликає Claude API з поточним контекстом симуляцiї для прогнозiв та рекомендацiй. CSS-спiнер + анiмованi крапки пiд час завантаження, плавна поява вiдповiдi.
 
-### Controls
+### Управлiння
 
-| Control | Range | Effect |
-|---------|-------|--------|
-| Sim speed | 1-8x | Steps per frame |
-| Food | 5-100 | Resource density |
-| Predators | 0-6 | Predator pressure |
-| Mutation rate | 0-50% | Evolution speed |
-| Seed | text | Deterministic PRNG seed (empty = random) |
+| Параметр | Дiапазон | Ефект |
+|----------|----------|-------|
+| Швидкiсть | 1-8x | Крокiв на кадр |
+| Їжа | 5-100 | Щiльнiсть ресурсiв |
+| Хижаки | 0-6 | Тиск хижакiв |
+| Мутацiя | 0-50% | Швидкiсть еволюцiї |
+| Seed | текст | Сiд ГПВЧ (порожнiй = випадковий) |
 
-### Keyboard Shortcuts
+### Клавiатурнi скорочення
 
-| Key | Action |
-|-----|--------|
-| Space | Pause / resume |
-| R | Reset (with confirmation) |
-| C | Ask Claude |
-| E | Export top 10 genomes |
-| 1-8 | Set simulation speed |
-| ? | Toggle shortcut cheatsheet |
+| Клавiша | Дiя |
+|---------|-----|
+| Space | Пауза / продовження |
+| R | Скидання (з пiдтвердженням) |
+| C | Запитати Claude |
+| E | Експорт топ-10 геномiв |
+| 1-8 | Встановити швидкiсть |
+| ? | Показати/сховати пiдказку |
 
-Shortcuts are ignored when an input field has focus.
+Скорочення iгноруються, коли поле вводу має фокус.
 
-### State Persistence
+### Збереження стану
 
-- Auto-saves every 30 seconds and on page close
-- On reload, shows a restore banner if saved state is less than 24 hours old
-- "Експорт повного запуску" button downloads full run history as JSON (includes seed)
+- Автозбереження кожнi 30 секунд та при закриттi сторiнки
+- При перезавантаженнi показує банер вiдновлення, якщо стан молодший за 24 години
+- Кнопка "Експорт повного запуску" завантажує повну iсторiю як JSON (включає сiд)
+- Пiдтримка кiлькох вкладок -- кожна вкладка має незалежний слот збереження
 
-### Server
+### Експорт
 
-- Single-command startup (`npm start`) — serves both static files and API proxy
-- `.env` file auto-loaded at startup (no manual `export` needed)
-- Browser opens automatically on start
-- `POST /claude` proxies to Anthropic API (rate-limited to 10 req/min per IP)
-- `POST /save` / `GET /state` for state persistence
-- Request deduplication — duplicate Claude calls are ignored while one is in-flight
+- **JSON** -- повний запуск з усiма параметрами та iсторiєю
+- **CSV** -- тiк, популяцiя, середнi значення генiв (для Excel/pandas)
+- **PNG** -- знiмок поточного стану канвасу
 
-All UI text is in Ukrainian.
+### Сервер
 
----
+- Запуск однiєю командою (`npm start`) -- роздає статику та API-проксi
+- Файл `.env` автоматично завантажується при стартi (не потрiбен ручний `export`)
+- Браузер вiдкривається автоматично при запуску
+- `POST /claude` проксує до Anthropic API (обмеження 10 запитiв/хв на IP)
+- `POST /save` / `GET /state` для збереження стану (пiдтримка кiлькох вкладок)
+- Дедуплiкацiя запитiв -- повторнi виклики Claude iгноруються, поки попереднiй не завершиться
 
-## Experiments to Try
-
-1. **Baseline.** Run as-is. After 1-2 minutes, observe which genes converge.
-2. **Predator pressure.** Predators = 6, food = 40. Expect cohesion and fleeStrength to rise.
-3. **Abundance.** Predators = 0, food = 100. Cohesion drops, agents become solitary.
-4. **Mutation stress test.** Mutation rate = 50%, food = 20, predators = 3. Population either adapts or goes extinct.
-5. **Reproducibility.** Set seed to `42`, run for 2 minutes, reset with same seed — observe identical evolution.
+Весь текст iнтерфейсу -- українською.
 
 ---
 
-## Technical Constraints
+## Експерименти
 
-- No build step — no webpack, vite, babel, TypeScript
-- No npm dependencies — stdlib only, uses `node:test` (Node.js 18+)
-- No browser frameworks — vanilla JS, Canvas 2D, ES modules
-- Node.js 18+, modern browsers (Chrome 100+, Firefox 100+, Safari 15+)
+1. **Базовий.** Запустiть як є. Через 1-2 хвилини спостерiгайте, якi гени конвергують.
+2. **Тиск хижакiв.** Хижаки = 6, їжа = 40. Очiкуйте зростання cohesion та fleeStrength.
+3. **Достаток.** Хижаки = 0, їжа = 100. Cohesion падає, агенти стають самотнiми.
+4. **Стрес-тест мутацiй.** Мутацiя = 50%, їжа = 20, хижаки = 3. Популяцiя або адаптується, або вимирає.
+5. **Вiдтворюванiсть.** Задайте сiд `42`, запустiть на 2 хвилини, скиньте з тим самим сiдом -- спостерiгайте iдентичну еволюцiю.
 
 ---
 
-## Roadmap
+## Технiчнi обмеження
 
-This is iteration 1. Full path:
+- Без етапу збирання -- без webpack, vite, babel, TypeScript
+- Без npm-залежностей -- лише stdlib, використовує `node:test` (Node.js 18+)
+- Без браузерних фреймворкiв -- чистий JS, Canvas 2D, ES-модулi
+- Node.js 18+, сучаснi браузери (Chrome 100+, Firefox 100+, Safari 15+)
 
-1. **Iteration 1** (this project) — browser prototype for intuition
-2. **Iteration 2** — Python/pygame with spatial index, obstacles, headless mode
-3. **Iteration 3** — StarCraft/SMAC as external testbed for architecture validation
-4. **Iteration 4** — NEAT evolution of neural network controllers
-5. **Iteration 5** — ARGoS with physics and sim2real on physical UGVs
+---
+
+## Дорожня карта
+
+Це iтерацiя 1. Повний шлях:
+
+1. **Iтерацiя 1** (цей проєкт) -- браузерний прототип для iнтуїцiї
+2. **Iтерацiя 2** -- Python/pygame з просторовим iндексом, перешкодами, headless-режимом
+3. **Iтерацiя 3** -- StarCraft/SMAC як зовнiшнiй тестовий стенд для валiдацiї архiтектури
+4. **Iтерацiя 4** -- NEAT-еволюцiя нейромережевих контролерiв
+5. **Iтерацiя 5** -- ARGoS з фiзикою та sim2real на фiзичних UGV
