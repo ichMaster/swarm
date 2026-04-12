@@ -2,7 +2,7 @@
 
 Iнтерактивна симуляцiя роєвого iнтелекту з генетичним вiдбором i AI-коментатором. Це стартовий прототип iтерацiї 1 з 5-крокового roadmap побудови платформи для дослiдження роєвих систем.
 
-**Статус:** часткова реалiзацiя, потребує доробки через Claude Code. Див. `SPECIFICATION.md`.
+**Статус:** часткова реалiзацiя, потребує доробки через Claude Code. Див. `specification/SPECIFICATION.md`.
 
 ---
 
@@ -16,7 +16,7 @@ swarm-evolution-v1/
 ├── .env.example         Шаблон для API ключа
 ├── .gitignore
 ├── README.md            Цей файл — iнструкцiя для користувача
-└── SPECIFICATION.md     Iнженерна специфiкацiя англiйською для Claude Code
+└── specification/SPECIFICATION.md     Iнженерна специфiкацiя англiйською для Claude Code
 ```
 
 ---
@@ -59,7 +59,7 @@ swarm-evolution-v1/
 
 ## Як довести проєкт до повноцiнного solution
 
-Поточна версiя працює, але має ряд обмежень: окремий запуск proxy i HTML, немає `.env` auto-loading, немає persistence, немає unified server. Повна специфiкацiя того, що треба доробити — у файлi `SPECIFICATION.md` (англiйською, бо призначена для Claude Code).
+Поточна версiя працює, але має ряд обмежень: окремий запуск proxy i HTML, немає `.env` auto-loading, немає persistence, немає unified server. Повна специфiкацiя того, що треба доробити — у файлi `specification/SPECIFICATION.md` (англiйською, бо призначена для Claude Code).
 
 ### Запуск через Claude Code
 
@@ -69,7 +69,7 @@ claude
 ```
 
 У Claude Code:
-> Read SPECIFICATION.md and complete all P0 items. After each change, verify the project still runs with `npm start`.
+> Read specification/SPECIFICATION.md and complete all P0 items. After each change, verify the project still runs with `npm start`.
 
 Claude Code пройдеться по всiх P0 (must-have) пунктах, потiм P1 (should-have), i опцiонально P2 (nice-to-have). Пiсля виконання у тебе буде робочий solution з однокомандним запуском.
 

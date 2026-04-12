@@ -16,7 +16,7 @@ The current state is a working prototype. This spec describes what needs to be d
 
 ## 1 — What exists today
 
-### File tree
+### File tree (current — to be restructured)
 
 ```
 swarm-evolution-v1/
@@ -56,6 +56,55 @@ swarm-evolution-v1/
 - Reads `ANTHROPIC_API_KEY` from environment, model from `CLAUDE_MODEL` (defaults to `claude-sonnet-4-5`)
 - CORS open (`*`) for local development
 - No npm dependencies (stdlib only: `http`, `https`)
+
+### Target project structure
+
+The monolithic layout must be restructured into a proper Node.js project:
+
+```
+swarm-evolution-v1/
+├── src/
+│   ├── server/
+│   │   ├── index.js           # Entry point — starts unified HTTP server
+│   │   ├── env.js             # .env parser (no dependencies)
+│   │   ├── static.js          # Static file serving middleware
+│   │   ├── claude-proxy.js    # POST /claude — proxy to Anthropic API
+│   │   ├── state.js           # POST /save, GET /state — persistence endpoints
+│   │   └── rate-limiter.js    # Token-bucket rate limiter
+│   └── client/
+│       ├── index.html         # HTML shell (markup only, loads JS/CSS)
+│       ├── css/
+│       │   └── style.css      # All styles extracted from inline
+│       └── js/
+│           ├── main.js        # App bootstrap, keyboard shortcuts
+│           ├── simulation.js  # Boids engine, physics, evolution loop
+│           ├── renderer.js    # Canvas 2D drawing
+│           ├── ui.js          # Sliders, panels, sparklines, DOM updates
+│           ├── claude.js      # Claude API client, request deduplication
+│           ├── state.js       # State save/restore, export functions
+│           └── prng.js        # Deterministic PRNG (Mulberry32) for seed control
+├── test/
+│   ├── server/
+│   │   ├── env.test.js        # .env parser unit tests
+│   │   ├── static.test.js     # Static file serving tests
+│   │   ├── claude-proxy.test.js # Proxy endpoint tests (mocked API)
+│   │   ├── state.test.js      # Persistence endpoint tests
+│   │   └── rate-limiter.test.js # Rate limiter unit tests
+│   ├── client/
+│   │   ├── simulation.test.js # Boids logic, evolution, energy model
+│   │   ├── prng.test.js       # PRNG determinism tests
+│   │   └── state.test.js      # State serialization tests
+│   └── integration/
+│       └── server.test.js     # Full server integration: startup, static serving, API proxy, state round-trip
+├── package.json
+├── .env.example
+├── .gitignore
+├── README.md
+├── CLAUDE.md
+└── SPECIFICATION.md
+```
+
+Client JS files use ES modules (`<script type="module">`) — no bundler needed, browsers load them natively.
 
 ### What does NOT work yet
 
@@ -97,19 +146,19 @@ npm start
 
 #### 3.1 Unified server: serve HTML + proxy from one process
 
-Modify `proxy.js` to also serve static files from the project directory. The same server (port 8787 by default) should:
+Build `src/server/index.js` as the entry point that composes all route handlers. The same server (port 8787 by default) should:
 
-- `GET /` → serve `index.html`
-- `GET /<anything>.html|.js|.css|.ico` → serve from project root with correct Content-Type
-- `POST /claude` → existing proxy behavior (unchanged)
-- `POST /save` → new endpoint for state persistence (see 3.3)
-- `GET /state` → new endpoint to load last saved state
+- `GET /` → serve `src/client/index.html`
+- `GET /*.html|.js|.css|.ico` → serve from `src/client/` with correct Content-Type
+- `POST /claude` → proxy to Anthropic API (handler in `src/server/claude-proxy.js`)
+- `POST /save` → state persistence (handler in `src/server/state.js`, see 3.3)
+- `GET /state` → load last saved state (handler in `src/server/state.js`)
 
-Use only Node.js stdlib (`http`, `fs`, `path`, `url`). Do not add `express` or any npm dependencies — the entire value prop is "zero-install, zero-build".
+Each handler is a separate module exporting a function `(req, res) => void`. The index composes them via URL routing.
 
-MIME types to handle: `text/html`, `application/javascript`, `text/css`, `application/json`, `image/x-icon`, `text/markdown`.
+Static file serving (`src/server/static.js`) serves files from `src/client/` directory. MIME types to handle: `text/html`, `application/javascript`, `text/css`, `application/json`, `image/x-icon`. Directory traversal must be blocked: resolve requested paths against the client root and reject anything that escapes it.
 
-Directory traversal must be blocked: resolve requested paths against the project root and reject anything that escapes it.
+Use only Node.js stdlib (`http`, `fs`, `path`, `url`). No express or any npm dependencies.
 
 #### 3.2 `.env` loading
 
@@ -216,12 +265,12 @@ On first visit (detect via missing `state.json`), show a small dismissable overl
 
 ### Hard constraints (do not violate)
 
-- **No build step**. No webpack, vite, babel, typescript compilation. The project must run by executing `node proxy.js` with zero prior build.
-- **No npm runtime dependencies**. `package.json` should have an empty `dependencies` object. Only Node.js stdlib (`http`, `https`, `fs`, `path`, `url`, `crypto`).
-- **No frameworks in the browser**. No React, Vue, Svelte. Vanilla JS, Canvas 2D, inline `<script>` block. Exception: if a tiny single-file library (<5KB, MIT/Apache license) is genuinely necessary, vendor it into the HTML as a `<script>` block with a source comment.
+- **No build step**. No webpack, vite, babel, typescript compilation. The project must run by executing `node src/server/index.js` with zero prior build. Client JS uses native ES modules (`<script type="module">`), loaded directly by the browser.
+- **No npm runtime dependencies**. `package.json` must have an empty `dependencies` object. Only Node.js stdlib (`http`, `https`, `fs`, `path`, `url`, `crypto`). `devDependencies` are allowed for the test framework only.
+- **No frameworks in the browser**. No React, Vue, Svelte. Vanilla JS, Canvas 2D, ES modules.
+- **Proper project structure**. Server code in `src/server/`, client code in `src/client/`, tests in `test/`. See "Target project structure" above.
 - **Ukrainian UI strings**. All labels, button text, panel titles, tooltips, error messages shown to the user must be in Ukrainian. Code comments, variable names, internal logs, and this documentation stay in English.
 - **No emoji in any output**. Per user's standing instructions, never include emoji in UI, diagrams, documents, code, or text. Use text labels or SVG icons instead.
-- **Single HTML file for the simulator**. `index.html` stays self-contained with inline CSS and JS. Do not split into separate `.js` / `.css` files. The file is the delivery artifact.
 
 ### Soft constraints (prefer but not enforced)
 
@@ -237,9 +286,59 @@ On first visit (detect via missing `state.json`), show a small dismissable overl
 
 ---
 
-## 5 — Testing & verification
+## 5 — Testing
 
-After completion, verify by running this sequence on a clean checkout:
+### Test framework
+
+Use **Node.js built-in test runner** (`node:test`) with `node:assert`. No external test dependencies needed — available since Node.js 18. This keeps `devDependencies` empty too.
+
+### Running tests
+
+```bash
+npm test              # run all tests
+npm run test:server   # server tests only
+npm run test:client   # client logic tests only
+npm run test:integration  # integration tests only
+```
+
+`package.json` scripts:
+```json
+{
+  "scripts": {
+    "start": "node src/server/index.js",
+    "test": "node --test test/**/*.test.js",
+    "test:server": "node --test test/server/*.test.js",
+    "test:client": "node --test test/client/*.test.js",
+    "test:integration": "node --test test/integration/*.test.js"
+  }
+}
+```
+
+### Test coverage requirements
+
+**Server unit tests (`test/server/`):**
+
+- `env.test.js` — parses KEY=value, handles comments, empty lines, quoted values, missing file, does not overwrite existing env vars
+- `static.test.js` — serves files with correct MIME types, returns 404 for missing files, blocks directory traversal (`../`), serves `index.html` for `/`
+- `claude-proxy.test.js` — forwards prompt to API, returns extracted text, handles API errors, rejects missing prompt, rejects invalid JSON
+- `state.test.js` — saves state to disk, loads state from disk, returns 404 when no state file, handles corrupt JSON gracefully
+- `rate-limiter.test.js` — allows requests under limit, returns 429 when exceeded, refills tokens over time, tracks per-IP separately
+
+**Client unit tests (`test/client/`):**
+
+- `simulation.test.js` — boid movement follows Reynolds rules, energy drains correctly (`speed * 0.5 + size * 0.3`), reproduction triggers at energy > 70, death at energy <= 0, mutation applies within configured rate, emergency respawn below population threshold
+- `prng.test.js` — same seed produces same sequence, different seeds produce different sequences, output distribution is roughly uniform
+- `state.test.js` — serialization round-trip preserves data, handles missing fields gracefully
+
+**Integration tests (`test/integration/`):**
+
+- `server.test.js` — starts server on a random port, verifies `GET /` returns HTML, `GET /css/style.css` returns CSS, `POST /claude` proxies correctly (with mocked upstream), `POST /save` + `GET /state` round-trip works, server shuts down cleanly
+
+Client test files that test pure logic (simulation, PRNG, serialization) should be written so they run in Node.js without a DOM. Extract testable logic into pure functions that don't depend on `window`, `document`, or `canvas`.
+
+### Manual verification
+
+After all tests pass, verify the full flow on a clean checkout:
 
 1. `cp .env.example .env`, add real API key
 2. `npm start`
@@ -256,23 +355,49 @@ After completion, verify by running this sequence on a clean checkout:
 13. Click "Вiдновити" — user log, observations, and sparkline history should reappear
 14. Kill server with Ctrl+C — should exit cleanly without leaving orphaned processes
 
-All 14 steps should pass without manual intervention beyond what's described.
-
 ---
 
 ## 6 — Files to create, modify, delete
 
-### Create
-- (none — everything can be done by modifying existing files)
+### Create (new project structure)
+
+**Server:**
+- `src/server/index.js` — entry point, creates and starts unified HTTP server
+- `src/server/env.js` — `.env` file parser
+- `src/server/static.js` — static file serving with MIME types and traversal protection
+- `src/server/claude-proxy.js` — `POST /claude` handler, extracted from `proxy.js`
+- `src/server/state.js` — `POST /save` and `GET /state` handlers
+- `src/server/rate-limiter.js` — token-bucket rate limiter
+
+**Client (split from `index.html`):**
+- `src/client/index.html` — HTML shell, loads CSS and JS modules
+- `src/client/css/style.css` — all styles
+- `src/client/js/main.js` — app bootstrap, keyboard shortcuts
+- `src/client/js/simulation.js` — boids engine, physics, evolution
+- `src/client/js/renderer.js` — Canvas 2D drawing
+- `src/client/js/ui.js` — sliders, panels, sparklines, DOM updates
+- `src/client/js/claude.js` — Claude API client, request deduplication
+- `src/client/js/state.js` — state save/restore, export
+- `src/client/js/prng.js` — deterministic PRNG (Mulberry32)
+
+**Tests:**
+- `test/server/env.test.js`
+- `test/server/static.test.js`
+- `test/server/claude-proxy.test.js`
+- `test/server/state.test.js`
+- `test/server/rate-limiter.test.js`
+- `test/client/simulation.test.js`
+- `test/client/prng.test.js`
+- `test/client/state.test.js`
+- `test/integration/server.test.js`
 
 ### Modify
-- `index.html` — add keyboard shortcuts (P1), state persistence hooks (P0), reaction observations (P0), loading animations (P1), seed control (P1), additional exports (P2), mobile CSS (P2), onboarding (P2)
-- `proxy.js` — unify with static server (P0), load `.env` (P0), add `/save` and `/state` endpoints (P0), auto-open browser (P0), rate limiting (P1)
-- `package.json` — simplify `start` script to just `node proxy.js` (both static serving and proxy handled there)
-- `README.md` — update to reflect the unified server flow (`npm start` replaces the two-terminal dance)
+- `package.json` — update `start` script to `node src/server/index.js`, add test scripts, keep `dependencies` empty and `devDependencies` empty (using `node:test`)
+- `README.md` — update to reflect new structure, `npm start`, `npm test`
 
-### Delete
-- (none)
+### Delete (after restructuring)
+- `index.html` — replaced by `src/client/index.html` + modules
+- `proxy.js` — replaced by `src/server/` modules
 
 ---
 
@@ -323,10 +448,12 @@ If any of the following are unclear, ask the user before writing code:
 
 When complete, all of the following should be true:
 
+- [ ] Project restructured into `src/server/`, `src/client/`, `test/` layout
 - [ ] `npm start` launches everything in one command
+- [ ] `npm test` runs all tests and they pass
 - [ ] Browser opens automatically
 - [ ] `.env` loading works without external deps
-- [ ] Static files served from same process as proxy
+- [ ] Static files served from `src/client/` by the same process as proxy
 - [ ] State persists across reloads with recovery banner
 - [ ] Claude panel works with nice loading animation
 - [ ] Keyboard shortcuts functional
@@ -335,12 +462,14 @@ When complete, all of the following should be true:
 - [ ] Export full run produces valid JSON
 - [ ] Rate limiting protects against accidental API spam
 - [ ] Clean shutdown on Ctrl+C
-- [ ] README updated to reflect single-command workflow
-- [ ] No new npm dependencies introduced
+- [ ] README updated to reflect new structure, `npm start`, `npm test`
+- [ ] No npm runtime dependencies (`dependencies` empty)
+- [ ] No npm dev dependencies (`devDependencies` empty — using `node:test`)
 - [ ] All UI strings still in Ukrainian
 - [ ] No emoji anywhere in output
+- [ ] Client-side logic testable in Node.js (pure functions, no DOM dependency for core logic)
 - [ ] Works on Chrome, Firefox, Safari
-- [ ] Project directory stays under 100KB
+- [ ] Project directory stays under 100KB (excluding `node_modules`)
 
 ---
 
