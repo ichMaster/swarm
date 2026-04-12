@@ -72,11 +72,44 @@ const makePredator = () => ({
   perception: 120, speed: 1.8,
 });
 
+// ============ SPATIAL HASH GRID ============
+const GRID_CELL = 110;
+const GRID_COLS = Math.ceil(W / GRID_CELL);
+const GRID_ROWS = Math.ceil(H / GRID_CELL);
+
+function buildGrid(entities) {
+  const cells = new Array(GRID_COLS * GRID_ROWS);
+  for (let i = 0; i < cells.length; i++) cells[i] = [];
+  for (const e of entities) {
+    const col = Math.min(Math.floor(e.x / GRID_CELL), GRID_COLS - 1);
+    const row = Math.min(Math.floor(e.y / GRID_CELL), GRID_ROWS - 1);
+    cells[row * GRID_COLS + col].push(e);
+  }
+  return cells;
+}
+
+function queryNeighbors(cells, x, y) {
+  const col = Math.min(Math.floor(x / GRID_CELL), GRID_COLS - 1);
+  const row = Math.min(Math.floor(y / GRID_CELL), GRID_ROWS - 1);
+  const result = [];
+  for (let dr = -1; dr <= 1; dr++) {
+    const r = ((row + dr) % GRID_ROWS + GRID_ROWS) % GRID_ROWS;
+    for (let dc = -1; dc <= 1; dc++) {
+      const c = ((col + dc) % GRID_COLS + GRID_COLS) % GRID_COLS;
+      const cell = cells[r * GRID_COLS + c];
+      for (let i = 0; i < cell.length; i++) result.push(cell[i]);
+    }
+  }
+  return result;
+}
+
 // ============ SIMULATION STEP ============
 function step(state, params) {
   const { boids, food, predators, stats } = state;
   const newBoids = [], births = [];
   let deaths = 0, eaten = 0;
+
+  const boidGrid = buildGrid(boids);
 
   for (const b of boids) {
     const percRadius = 30 + b.genome.perception * 80;
@@ -86,7 +119,9 @@ function step(state, params) {
     let aliX = 0, aliY = 0, aliCount = 0;
     let cohX = 0, cohY = 0, cohCount = 0;
 
-    for (const other of boids) {
+    const nearby = queryNeighbors(boidGrid, b.x, b.y);
+    for (let ni = 0; ni < nearby.length; ni++) {
+      const other = nearby[ni];
       if (other.id === b.id) continue;
       const d2 = dist2(b, other);
       if (d2 < percRadius2) {
@@ -248,8 +283,10 @@ export {
   ENERGY_START, ENERGY_DRAIN, FOOD_ENERGY, REPRODUCE_THRESHOLD,
   MUTATION_AMOUNT, HISTORY_LEN, TREND_WINDOW,
   GENE_RANGES, GENE_NAMES, GENE_UA, GENE_COLORS,
+  GRID_CELL, GRID_COLS, GRID_ROWS,
   clamp, rnd, dist2, wrap, setRng, getRng,
   randomGenome, mutateGenome, genomeColor,
+  buildGrid, queryNeighbors,
   makeBoid, makeFood, makePredator,
   step, detectTrends, createInitialState, createEmptyHistory,
 };
