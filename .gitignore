@@ -1,3 +1,5 @@
 node_modules/
 .env
 .mcp.json
+state.json
+.claude/settings.json

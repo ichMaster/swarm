@@ -7,25 +7,54 @@ description: |
   summary report when done. Use: /execute-phase <phase-number>
 argument-hint: "<phase-number>"
 allowed-tools:
+  # File operations
   - Read
   - Edit
   - Write
   - Glob
   - Grep
+  # Git
   - Bash(git:*)
+  # Node.js
   - Bash(node:*)
   - Bash(npm:*)
-  - Bash(gh:*)
+  - Bash(npx:*)
+  # Shell
   - Bash(ls:*)
   - Bash(mkdir:*)
   - Bash(rm:*)
+  - Bash(mv:*)
   - Bash(cp:*)
   - Bash(cat:*)
+  - Bash(touch:*)
+  - Bash(echo:*)
+  - Bash(chmod:*)
+  - Bash(head:*)
+  - Bash(tail:*)
+  - Bash(wc:*)
+  - Bash(diff:*)
+  - Bash(curl:*)
+  - Bash(test:*)
+  - Bash(timeout:*)
+  - Bash(pwd:*)
+  - Bash(which:*)
   - Bash(lsof:*)
   - Bash(PORT=*:*)
+  # GitHub CLI
+  - Bash(gh:*)
+  # GitHub MCP
   - mcp__github__list_issues
   - mcp__github__get_issue
+  - mcp__github__create_issue
+  - mcp__github__update_issue
   - mcp__github__add_issue_comment
+  - mcp__github__create_pull_request
+  - mcp__github__merge_pull_request
+  - mcp__github__list_pull_requests
+  - mcp__github__push_files
+  - mcp__github__search_code
+  - mcp__github__create_or_update_file
+  # Orchestration
   - Agent
   - TodoWrite
 ---
