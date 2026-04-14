@@ -132,6 +132,61 @@ document.getElementById("btn-new-window").addEventListener("click", () => {
   window.open(window.location.href, "_blank");
 });
 
+document.getElementById("btn-help").addEventListener("click", () => {
+  let overlay = document.getElementById("help-overlay");
+  if (overlay) { overlay.remove(); return; }
+  overlay = document.createElement("div");
+  overlay.id = "help-overlay";
+  overlay.className = "help-overlay";
+  overlay.innerHTML = `
+    <div class="help-modal">
+      <h2>${t("help.title")}</h2>
+      <h3>${t("help.controls_title")}</h3>
+      <p>${t("help.controls.sim_speed")}</p>
+      <p>${t("help.controls.food")}</p>
+      <p>${t("help.controls.predators")}</p>
+      <p>${t("help.controls.mutation")}</p>
+      <p>${t("help.controls.seed")}</p>
+      <h3>${t("help.genes_title")}</h3>
+      <p>${t("help.gene.speed")}</p>
+      <p>${t("help.gene.perception")}</p>
+      <p>${t("help.gene.cohesion")}</p>
+      <p>${t("help.gene.alignment")}</p>
+      <p>${t("help.gene.separation")}</p>
+      <p>${t("help.gene.fleeStrength")}</p>
+      <p>${t("help.gene.size")}</p>
+      <h3>${t("help.energy_title")}</h3>
+      <p>${t("help.energy_text")}</p>
+      <h3>${t("help.shortcuts_title")}</h3>
+      <p>${t("cheatsheet.space")}</p>
+      <p>${t("cheatsheet.r")}</p>
+      <p>${t("cheatsheet.c")}</p>
+      <p>${t("cheatsheet.e")}</p>
+      <p>${t("cheatsheet.numbers")}</p>
+      <p>${t("cheatsheet.question")}</p>
+      <h3>${t("help.exports_title")}</h3>
+      <p>${t("help.export.top10")}</p>
+      <p>${t("help.export.full_run")}</p>
+      <p>${t("help.export.csv")}</p>
+      <p>${t("help.export.image")}</p>
+      <h3>${t("help.tips_title")}</h3>
+      <p>${t("help.tip1")}</p>
+      <p>${t("help.tip2")}</p>
+      <p>${t("help.tip3")}</p>
+      <p>${t("help.tip4")}</p>
+      <div class="help-close">
+        <button id="btn-help-close">${t("help.close")}</button>
+      </div>
+    </div>
+  `;
+  function dismiss() { overlay.remove(); }
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) dismiss();
+  });
+  document.body.appendChild(overlay);
+  document.getElementById("btn-help-close").addEventListener("click", dismiss);
+});
+
 document.getElementById("btn-claude").addEventListener("click", async () => {
   if (isInFlight()) return;
   const btn = document.getElementById("btn-claude");
