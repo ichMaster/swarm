@@ -5,7 +5,7 @@ import { draw } from "./renderer.js";
 import { askClaude, isInFlight } from "./claude.js";
 import {
   renderMetrics, renderObservations, renderUserLog,
-  bindSlider, getObservations, getUserLog,
+  logUserChange, bindSlider, getObservations, getUserLog,
   resetUserLog, resetObservations,
   setObservations, setUserLog,
 } from "./ui.js";
@@ -69,6 +69,7 @@ langSelect.addEventListener("change", () => {
   localStorage.setItem("lang", lang);
   document.documentElement.lang = lang;
   renderUI();
+  populateScenarios();
   renderObservations();
   renderUserLog();
 });
@@ -95,6 +96,71 @@ bindSlider("sim-speed", "lbl-speed", "simSpeed", params, v => v, null, getTick, 
 bindSlider("food-count", "lbl-food", "foodCount", params, v => v, null, getTick, getGeneAvg);
 bindSlider("predator-count", "lbl-predators", "predatorCount", params, v => v, null, getTick, getGeneAvg);
 bindSlider("mutation-rate", "lbl-mutation", "mutationRate", params, v => v / 100, null, getTick, getGeneAvg);
+
+// ============ SCENARIO PRESETS ============
+const SCENARIOS = [
+  { key: "free", food: null, predators: null, mutation: null, speed: null, seed: null },
+  { key: "baseline", food: 80, predators: 2, mutation: 15, speed: 4, seed: "" },
+  { key: "predator_pressure", food: 80, predators: 6, mutation: 15, speed: 4, seed: "" },
+  { key: "scarcity", food: 10, predators: 1, mutation: 15, speed: 4, seed: "" },
+  { key: "paradise", food: 200, predators: 0, mutation: 15, speed: 4, seed: "" },
+  { key: "mutation_chaos", food: 60, predators: 3, mutation: 50, speed: 4, seed: "" },
+  { key: "reproducible", food: 80, predators: 3, mutation: 15, speed: 4, seed: "experiment-1" },
+];
+
+const scenarioSelect = document.getElementById("scenario-select");
+let scenarioLocked = false;
+
+function populateScenarios() {
+  scenarioSelect.innerHTML = "";
+  for (const s of SCENARIOS) {
+    const opt = document.createElement("option");
+    opt.value = s.key;
+    opt.textContent = t("scenario." + s.key);
+    scenarioSelect.appendChild(opt);
+  }
+}
+populateScenarios();
+
+function syncSlidersToParams() {
+  document.getElementById("sim-speed").value = params.simSpeed;
+  document.getElementById("lbl-speed").textContent = params.simSpeed;
+  document.getElementById("food-count").value = params.foodCount;
+  document.getElementById("lbl-food").textContent = params.foodCount;
+  document.getElementById("predator-count").value = params.predatorCount;
+  document.getElementById("lbl-predators").textContent = params.predatorCount;
+  document.getElementById("mutation-rate").value = Math.round(params.mutationRate * 100);
+  document.getElementById("lbl-mutation").textContent = Math.round(params.mutationRate * 100);
+}
+
+scenarioSelect.addEventListener("change", () => {
+  const s = SCENARIOS.find(sc => sc.key === scenarioSelect.value);
+  if (!s || s.key === "free") return;
+  scenarioLocked = true;
+  params.foodCount = s.food;
+  params.predatorCount = s.predators;
+  params.mutationRate = s.mutation / 100;
+  params.simSpeed = s.speed;
+  if (s.seed !== null) document.getElementById("seed-input").value = s.seed;
+  syncSlidersToParams();
+  initState();
+  resetUserLog();
+  logUserChange(t("scenario.changed", { name: t("scenario." + s.key) }), 0);
+  scenarioLocked = false;
+});
+
+// Reset scenario to free mode when user manually changes a slider
+const origBindSliderInput = (id) => {
+  document.getElementById(id).addEventListener("input", () => {
+    if (!scenarioLocked && scenarioSelect.value !== "free") {
+      scenarioSelect.value = "free";
+    }
+  });
+};
+origBindSliderInput("sim-speed");
+origBindSliderInput("food-count");
+origBindSliderInput("predator-count");
+origBindSliderInput("mutation-rate");
 
 document.getElementById("btn-toggle").addEventListener("click", (e) => {
   running = !running;

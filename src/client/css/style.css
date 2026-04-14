@@ -12,6 +12,11 @@ body {
   display: flex; justify-content: space-between; align-items: baseline; gap: 16px;
 }
 .header-sub { font-size: 11px; color: #6b7280; font-family: monospace; }
+.scenario-select {
+  background: #1f2937; color: #e5e7eb; border: 1px solid #374151;
+  border-radius: 6px; padding: 5px 8px; font-size: 12px; width: 100%;
+  cursor: pointer; outline: none;
+}
 .lang-select {
   background: #1f2937; color: #e5e7eb; border: 1px solid #374151;
   border-radius: 6px; padding: 4px 8px; font-size: 12px;
