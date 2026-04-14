@@ -1,3 +1,5 @@
+import { t } from "./i18n.js";
+
 const MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 function getTabId() {
@@ -81,9 +83,9 @@ function showRestoreBanner(onRestore, onNew) {
   const banner = document.createElement("div");
   banner.className = "restore-banner";
   banner.innerHTML = `
-    <span>Знайдено збережений стан. </span>
-    <button id="btn-restore" class="btn-restore">Вiдновити</button>
-    <button id="btn-new" class="btn-new">Почати нову</button>
+    <span>${t("banner.found_state")} </span>
+    <button id="btn-restore" class="btn-restore">${t("btn.restore")}</button>
+    <button id="btn-new" class="btn-new">${t("btn.start_new")}</button>
   `;
   document.body.prepend(banner);
   document.getElementById("btn-restore").addEventListener("click", () => {

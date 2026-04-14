@@ -35,6 +35,21 @@ function initState() {
 
 const getTick = () => state ? state.stats.tick : 0;
 
+// ============ RENDER UI (i18n) ============
+function renderUI() {
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  document.getElementById("seed-input").placeholder = t("label.seed_placeholder");
+  // Update toggle button text to match current state
+  const toggleBtn = document.getElementById("btn-toggle");
+  if (running) {
+    toggleBtn.textContent = t("btn.pause");
+  } else {
+    toggleBtn.textContent = t("btn.resume");
+  }
+}
+
 // ============ LANGUAGE SELECTOR ============
 const savedLang = localStorage.getItem("lang") || "uk";
 setLang(savedLang);
@@ -53,7 +68,12 @@ langSelect.addEventListener("change", () => {
   setLang(lang);
   localStorage.setItem("lang", lang);
   document.documentElement.lang = lang;
+  renderUI();
+  renderObservations();
+  renderUserLog();
 });
+
+renderUI();
 
 // ============ MAIN LOOP ============
 function loop() {
@@ -78,7 +98,7 @@ bindSlider("mutation-rate", "lbl-mutation", "mutationRate", params, v => v / 100
 
 document.getElementById("btn-toggle").addEventListener("click", (e) => {
   running = !running;
-  e.target.textContent = running ? "Pause" : "Resume";
+  e.target.textContent = running ? t("btn.pause") : t("btn.resume");
   e.target.className = running ? "btn-pause" : "btn-resume";
 });
 
@@ -93,7 +113,7 @@ document.getElementById("btn-export").addEventListener("click", () => {
   const sorted = [...state.boids].sort((a, b) => b.age - a.age).slice(0, 10);
   const data = sorted.map(b => ({ age: b.age, energy: +b.energy.toFixed(1), genome: b.genome }));
   console.log("=== TOP 10 LONGEST-LIVED BOIDS ===\n" + JSON.stringify(data, null, 2));
-  alert("Top 10 genomes exported to browser console (F12).");
+  alert(t("alert.export_top10"));
 });
 
 document.getElementById("btn-export-run").addEventListener("click", () => {
@@ -117,7 +137,7 @@ document.getElementById("btn-claude").addEventListener("click", async () => {
   const btn = document.getElementById("btn-claude");
   const body = document.getElementById("claude-body");
   btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>Claude думає...';
+  btn.innerHTML = `<span class="spinner"></span>${t("loading.claude")}`;
   body.className = "claude-body loading";
   body.textContent = "";
   try {
@@ -128,10 +148,10 @@ document.getElementById("btn-claude").addEventListener("click", async () => {
     body.textContent = reply;
   } catch (e) {
     body.className = "claude-body error";
-    body.textContent = `Помилка: ${e.message}\n\nДля роботи LLM-панелi потрiбен локальний proxy-сервер. Запусти:\n  node src/server/index.js\n(див. README.md)`;
+    body.textContent = t("error.claude", { msg: e.message });
   } finally {
     btn.disabled = false;
-    btn.textContent = "Запитати Claude";
+    btn.textContent = t("btn.ask_claude");
   }
 });
 
@@ -147,14 +167,14 @@ function toggleCheatsheet() {
   overlay.className = "cheatsheet-overlay";
   overlay.innerHTML = `
     <div class="cheatsheet">
-      <div class="cheatsheet-title">Клавiшi</div>
-      <div>Space — пауза / продовження</div>
-      <div>R — скидання (з пiдтвердженням)</div>
-      <div>C — запитати Claude</div>
-      <div>E — export top 10</div>
-      <div>1..8 — швидкiсть симуляцiї</div>
-      <div>? — показати/сховати цю пiдказку</div>
-      <div class="cheatsheet-close">натисни будь-яку клавiшу або клiкни щоб закрити</div>
+      <div class="cheatsheet-title">${t("cheatsheet.title")}</div>
+      <div>${t("cheatsheet.space")}</div>
+      <div>${t("cheatsheet.r")}</div>
+      <div>${t("cheatsheet.c")}</div>
+      <div>${t("cheatsheet.e")}</div>
+      <div>${t("cheatsheet.numbers")}</div>
+      <div>${t("cheatsheet.question")}</div>
+      <div class="cheatsheet-close">${t("cheatsheet.close")}</div>
     </div>
   `;
   overlay.addEventListener("click", () => overlay.remove());
@@ -162,7 +182,7 @@ function toggleCheatsheet() {
 }
 
 window.addEventListener("keydown", (e) => {
-  if (e.target.tagName === "INPUT") return;
+  if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
 
   switch (e.key) {
     case " ":
@@ -171,7 +191,7 @@ window.addEventListener("keydown", (e) => {
       break;
     case "r":
     case "R":
-      if (confirm("Скинути симуляцiю?")) {
+      if (confirm(t("confirm.reset"))) {
         document.getElementById("btn-reset").click();
       }
       break;
@@ -192,7 +212,6 @@ window.addEventListener("keydown", (e) => {
         document.getElementById("sim-speed").value = e.key;
         document.getElementById("lbl-speed").textContent = e.key;
       }
-      // Close cheatsheet on any other key
       const cs = document.getElementById("cheatsheet-overlay");
       if (cs) cs.remove();
       break;
@@ -211,21 +230,19 @@ function showOnboarding() {
   overlay.className = "onboarding-overlay";
   overlay.innerHTML = `
     <div class="onboarding">
-      <div class="onboarding-title">Ласкаво просимо до Swarm Evolution</div>
+      <div class="onboarding-title">${t("onboarding.title")}</div>
+      <div class="onboarding-section">${t("onboarding.intro")}</div>
       <div class="onboarding-section">
-        Це симулятор роїв з еволюцiйним вiдбором. Нижче канвасу розташованi три панелi коментарiв:
+        <span class="onboarding-label user">${t("onboarding.panel1")}</span>
       </div>
       <div class="onboarding-section">
-        <span class="onboarding-label user">1 -- Дiї користувача</span> -- тут з'являються вашi змiни параметрiв (їжа, хижаки, мутацiя).
+        <span class="onboarding-label dyn">${t("onboarding.panel2")}</span>
       </div>
       <div class="onboarding-section">
-        <span class="onboarding-label dyn">2 -- Динамiка популяцiї</span> -- автоматичнi спостереження за трендами генiв та популяцiї.
-      </div>
-      <div class="onboarding-section">
-        <span class="onboarding-label claude">3 -- Коментар вiд Claude</span> -- натиснiть "Запитати Claude" щоб отримати AI-аналiз, прогноз i рекомендацiю.
+        <span class="onboarding-label claude">${t("onboarding.panel3")}</span>
       </div>
       <div class="onboarding-close">
-        <button id="btn-onboarding-close">Зрозумiло</button>
+        <button id="btn-onboarding-close">${t("btn.understood")}</button>
       </div>
     </div>
   `;
@@ -246,12 +263,10 @@ async function boot() {
   if (saved) {
     showRestoreBanner(
       () => {
-        // Restore
         Object.assign(params, saved.params);
         history = saved.history;
         if (saved.userLog) setUserLog(saved.userLog);
         if (saved.observations) setObservations(saved.observations);
-        // Sync slider UI to restored params
         document.getElementById("sim-speed").value = params.simSpeed;
         document.getElementById("lbl-speed").textContent = params.simSpeed;
         document.getElementById("food-count").value = params.foodCount;
@@ -265,7 +280,6 @@ async function boot() {
         renderObservations();
       },
       () => {
-        // Start new
         initState();
       }
     );
