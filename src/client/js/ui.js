@@ -1,7 +1,8 @@
 import {
-  GENE_NAMES, GENE_COLORS, GENE_UA, MAX_POP,
+  GENE_NAMES, GENE_COLORS, MAX_POP,
   TREND_WINDOW, detectTrends,
 } from "./simulation.js";
+import { t } from "./i18n.js";
 import { renderSparkline } from "./renderer.js";
 
 let observations = [];
@@ -11,20 +12,13 @@ let pendingActions = [];
 const CAUSAL_DELAY = 60;
 const CAUSAL_THRESHOLD = 0.05;
 
-const SLIDER_UA = {
-  foodCount: "їжi",
-  predatorCount: "хижакiв",
-  mutationRate: "мутацiї",
-  simSpeed: "швидкостi",
-};
-
 function renderObservations() {
   const el = document.getElementById("obs-log");
   if (observations.length === 0) {
-    el.innerHTML = `<span class="muted">трендiв поки немає (треба ~${TREND_WINDOW * 2} тiкiв)</span>`;
+    el.innerHTML = `<span class="muted">${t("placeholder.obs_log", { n: TREND_WINDOW * 2 })}</span>`;
   } else {
     el.innerHTML = observations.map(o => {
-      const cls = o.startsWith("[реакцiя]") ? ' class="obs-reaction"' : "";
+      const cls = o.startsWith("[") ? ' class="obs-reaction"' : "";
       return `<div${cls}>• ${o}</div>`;
     }).join("");
   }
@@ -33,7 +27,7 @@ function renderObservations() {
 function renderUserLog() {
   const el = document.getElementById("user-log");
   if (userLog.length === 0) {
-    el.innerHTML = `<span class="muted">змiни параметрiв з'являться тут</span>`;
+    el.innerHTML = `<span class="muted">${t("placeholder.user_log")}</span>`;
   } else {
     el.innerHTML = userLog.slice().reverse().map(e =>
       `<div><span class="tick">[t=${e.tick}]</span> ${e.text}</div>`
@@ -75,7 +69,7 @@ function renderMetrics(state, history) {
   container.innerHTML = GENE_NAMES.map(g => `
     <div class="gene-row">
       <div class="gene-header">
-        <span>${g}</span>
+        <span>${t("gene." + g)}</span>
         <span class="val">${geneAvg[g].toFixed(2)}</span>
       </div>
       <svg id="spark-${g}" class="sparkline" width="140" height="24"></svg>
@@ -87,7 +81,6 @@ function renderMetrics(state, history) {
 
   if (state.stats.tick % 30 === 0) {
     observations = detectTrends(history);
-    // Check causal links from pending slider actions
     const tick = state.stats.tick;
     const remaining = [];
     for (const action of pendingActions) {
@@ -100,14 +93,17 @@ function renderMetrics(state, history) {
           }
         }
         if (maxGene) {
-          const sliderName = SLIDER_UA[action.key] || action.key;
+          const sliderName = t("slider." + action.key);
           const arrow = maxDelta > 0 ? "\u2191" : "\u2193";
           const formatted = typeof action.newVal === "number" && action.newVal < 1
             ? `${(action.newVal * 100).toFixed(0)}%`
             : action.newVal;
           observations.push(
-            `[реакцiя] Пiсля змiни ${sliderName} до ${formatted}, ` +
-            `${GENE_UA[maxGene]} ${arrow} на ${Math.abs(maxDelta).toFixed(2)} за ${CAUSAL_DELAY} тiкiв`
+            t("trend.reaction", {
+              slider: sliderName, val: formatted,
+              gene: t("gene." + maxGene), arrow,
+              delta: Math.abs(maxDelta).toFixed(2), ticks: CAUSAL_DELAY,
+            })
           );
         }
       } else {
@@ -122,11 +118,14 @@ function renderMetrics(state, history) {
 }
 
 function labelFor(key, oldVal, newVal) {
-  if (key === "foodCount") return `Їжа: ${oldVal} \u2192 ${newVal}`;
-  if (key === "predatorCount") return `Хижаки: ${oldVal} \u2192 ${newVal}`;
-  if (key === "mutationRate") return `Мутацiя: ${(oldVal * 100).toFixed(0)}% \u2192 ${(newVal * 100).toFixed(0)}%`;
-  if (key === "simSpeed") return `Швидкiсть: ${oldVal}x \u2192 ${newVal}x`;
-  return `${key}: ${oldVal} \u2192 ${newVal}`;
+  const param = t("log." + key);
+  if (key === "mutationRate") {
+    return t("log.change.mutationRate", { param, old: (oldVal * 100).toFixed(0), new: (newVal * 100).toFixed(0) });
+  }
+  if (key === "simSpeed") {
+    return t("log.change.simSpeed", { param, old: oldVal, new: newVal });
+  }
+  return t("log.change", { param, old: oldVal, new: newVal });
 }
 
 function bindSlider(id, lblId, key, params, transform, formatLbl, getTick, getGeneAvg) {

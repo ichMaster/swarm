@@ -1,3 +1,5 @@
+import { t } from "./i18n.js";
+
 // ============ CONSTANTS ============
 const W = 1800, H = 900;
 const INIT_POP = 120, MAX_POP = 240, MIN_POP = 40;
@@ -245,9 +247,10 @@ function detectTrends(history) {
   const avgO = older.reduce((a, b) => a + b, 0) / older.length;
   const diff = avgR - avgO;
   if (Math.abs(diff) > 8) {
-    obs.push(`Популяцiя ${diff > 0 ? "зросла" : "впала"} на ${Math.abs(diff).toFixed(0)} особин`);
+    const key = diff > 0 ? "trend.pop_grew" : "trend.pop_fell";
+    obs.push(t(key, { n: Math.abs(diff).toFixed(0) }));
   } else if (Math.abs(diff) < 3 && avgR > 30) {
-    obs.push(`Популяцiя стабiлiзувалася на ~${avgR.toFixed(0)}`);
+    obs.push(t("trend.pop_stable", { n: avgR.toFixed(0) }));
   }
 
   for (const g of GENE_NAMES) {
@@ -259,7 +262,8 @@ function detectTrends(history) {
     const aO = old.reduce((a, b) => a + b, 0) / old.length;
     const d = aR - aO;
     if (Math.abs(d) > 0.05) {
-      obs.push(`${GENE_UA[g]} ${d > 0 ? "\u2191" : "\u2193"} на ${Math.abs(d).toFixed(2)} (зараз ${aR.toFixed(2)})`);
+      const key = d > 0 ? "trend.gene_up" : "trend.gene_down";
+      obs.push(t(key, { gene: t("gene." + g), delta: Math.abs(d).toFixed(2), val: aR.toFixed(2) }));
     }
   }
   return obs;
