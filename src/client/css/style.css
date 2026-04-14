@@ -71,6 +71,7 @@ input[type=range] { width: 100%; }
 .claude-body {
   font-size: 13px; font-family: system-ui, -apple-system, sans-serif;
   color: #e9d5ff; line-height: 1.65; min-height: 80px;
+  max-width: 1000px;
   white-space: pre-wrap; word-break: break-word;
   text-align: justify; hyphens: auto;
 }
