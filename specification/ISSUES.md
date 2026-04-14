@@ -682,7 +682,7 @@ Independent of each other. Only after Phases 1-4 are complete and passing.
 - Add CSS media query for viewports below 1100px
 - Canvas stacks on top, sidebar moves below
 - Commentary panels stack vertically
-- Canvas scales to fit width while preserving 1800:1200 aspect ratio
+- Canvas scales to fit width while preserving 1800:900 aspect ratio
 
 **Expected results:** The simulator is usable on tablets and narrow browser windows without horizontal scrolling.
 
@@ -690,7 +690,7 @@ Independent of each other. Only after Phases 1-4 are complete and passing.
 - [ ] Media query triggers at <1100px viewport width
 - [ ] Canvas stacks on top, sidebar moves below
 - [ ] Commentary panels stack vertically
-- [ ] Canvas scales to fit width preserving 1800:1200 aspect ratio
+- [ ] Canvas scales to fit width preserving 1800:900 aspect ratio
 - [ ] No horizontal scroll on mobile
 
 **Dependencies:** ISSUE-03

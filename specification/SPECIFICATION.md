@@ -32,7 +32,7 @@ swarm-evolution-v1/
 ### Functionality currently working
 
 **Simulation core (`index.html`, `<script>` block):**
-- 2D canvas 1800×1200 with wraparound edges
+- 2D canvas 1800×900 with wraparound edges
 - 120-240 boids, each with a 7-gene genome: `speed`, `perception`, `cohesion`, `alignment`, `separation`, `fleeStrength`, `size`
 - Classic three Reynolds rules (separation, alignment, cohesion) plus predator flee and food seek
 - 40 food particles (green dots), 2 predators (red circles with simple nearest-prey hunting)

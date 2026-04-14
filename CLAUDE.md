@@ -78,7 +78,7 @@ Client tests cover pure logic only (simulation math, PRNG determinism, state ser
 - Reynolds flocking rules + predator flee + food seek
 - Asynchronous evolution: reproduction at energy > 70 with mutation, death at energy <= 0 or predator contact
 - Energy drain: `speed * 0.5 + size * 0.3`
-- Canvas: 1800x1200 with wraparound edges
+- Canvas: 1800x900 with wraparound edges
 
 ## Key Specification
 
