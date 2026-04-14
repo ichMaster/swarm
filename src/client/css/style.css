@@ -138,7 +138,7 @@ svg.sparkline { display: block; }
   .canvas-col { flex: 1 1 auto; }
   canvas {
     width: 100%; height: auto;
-    aspect-ratio: 900 / 600;
+    aspect-ratio: 1800 / 1200;
   }
   .sidebar { max-width: none; width: 100%; }
   .commentary-row { flex-direction: column; }

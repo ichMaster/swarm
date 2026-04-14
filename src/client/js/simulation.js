@@ -1,5 +1,5 @@
 // ============ CONSTANTS ============
-const W = 900, H = 600;
+const W = 1800, H = 1200;
 const INIT_POP = 60, MAX_POP = 120, MIN_POP = 20;
 const ENERGY_START = 50, ENERGY_DRAIN = 0.15;
 const FOOD_ENERGY = 35, REPRODUCE_THRESHOLD = 70;
