@@ -74,7 +74,7 @@ Client tests cover pure logic only (simulation math, PRNG determinism, state ser
 
 ## Simulation Mechanics
 
-- 60-120 boids with 7-gene genome: `speed`, `perception`, `cohesion`, `alignment`, `separation`, `fleeStrength`, `size`
+- 120-240 boids with 7-gene genome: `speed`, `perception`, `cohesion`, `alignment`, `separation`, `fleeStrength`, `size`
 - Reynolds flocking rules + predator flee + food seek
 - Asynchronous evolution: reproduction at energy > 70 with mutation, death at energy <= 0 or predator contact
 - Energy drain: `speed * 0.5 + size * 0.3`

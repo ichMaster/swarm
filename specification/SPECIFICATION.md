@@ -33,7 +33,7 @@ swarm-evolution-v1/
 
 **Simulation core (`index.html`, `<script>` block):**
 - 2D canvas 1800×1200 with wraparound edges
-- 60-120 boids, each with a 7-gene genome: `speed`, `perception`, `cohesion`, `alignment`, `separation`, `fleeStrength`, `size`
+- 120-240 boids, each with a 7-gene genome: `speed`, `perception`, `cohesion`, `alignment`, `separation`, `fleeStrength`, `size`
 - Classic three Reynolds rules (separation, alignment, cohesion) plus predator flee and food seek
 - 40 food particles (green dots), 2 predators (red circles with simple nearest-prey hunting)
 - Asynchronous evolution: reproduction at energy > 70 with mutation, death at energy ≤ 0 or predator contact
@@ -274,7 +274,7 @@ On first visit (detect via missing `state.json`), show a small dismissable overl
 
 ### Soft constraints (prefer but not enforced)
 
-- Target ~60fps at 120 boids on a 2020-era laptop.
+- Target ~60fps at 240 boids on a 2020-era laptop.
 - Keep total project size under 100KB (excluding `node_modules`, which should be empty).
 - Prefer clarity over cleverness in code. This is research tooling; the user will read and modify it.
 

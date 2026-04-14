@@ -19,7 +19,7 @@ let history = createEmptyHistory();
 let running = true;
 let metricsCounter = 0;
 let lastMetrics = {};
-const params = { foodCount: 40, predatorCount: 2, mutationRate: 0.15, simSpeed: 1 };
+const params = { foodCount: 80, predatorCount: 2, mutationRate: 0.15, simSpeed: 1 };
 
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
