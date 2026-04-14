@@ -12,6 +12,11 @@ body {
   display: flex; justify-content: space-between; align-items: baseline; gap: 16px;
 }
 .header-sub { font-size: 11px; color: #6b7280; font-family: monospace; }
+.lang-select {
+  background: #1f2937; color: #e5e7eb; border: 1px solid #374151;
+  border-radius: 6px; padding: 4px 8px; font-size: 12px;
+  cursor: pointer; outline: none;
+}
 canvas {
   border: 1px solid #1f2937; border-radius: 6px;
   display: block; background: #0a0e1a; max-width: 100%;

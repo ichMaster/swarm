@@ -1,4 +1,5 @@
 import { step, createInitialState, createEmptyHistory, setRng, GENE_NAMES } from "./simulation.js";
+import { t, setLang, getLang, LANGS } from "./i18n.js";
 import { createRng } from "./prng.js";
 import { draw } from "./renderer.js";
 import { askClaude, isInFlight } from "./claude.js";
@@ -33,6 +34,26 @@ function initState() {
 }
 
 const getTick = () => state ? state.stats.tick : 0;
+
+// ============ LANGUAGE SELECTOR ============
+const savedLang = localStorage.getItem("lang") || "uk";
+setLang(savedLang);
+document.documentElement.lang = savedLang;
+
+const langSelect = document.getElementById("lang-select");
+for (const [code, name] of Object.entries(LANGS)) {
+  const opt = document.createElement("option");
+  opt.value = code;
+  opt.textContent = name;
+  if (code === savedLang) opt.selected = true;
+  langSelect.appendChild(opt);
+}
+langSelect.addEventListener("change", () => {
+  const lang = langSelect.value;
+  setLang(lang);
+  localStorage.setItem("lang", lang);
+  document.documentElement.lang = lang;
+});
 
 // ============ MAIN LOOP ============
 function loop() {
